@@ -3,143 +3,185 @@ import pandas as pd
 import altair as alt
 
 # ---------------------------------------------------------
-# 🧠 MODEL CONFIGURATION (The "Brain")
+# 🧠 AGENT BRAIN (Model & Data)
 # ---------------------------------------------------------
 INTERCEPT = 10.3838
 COEF_DISTANCE = 4.6309
 COEF_HOUR = 0.0935
 COEF_WEEKEND = 0.0693
 COEF_PASSENGER = 0.1288
-
-# HOURLY TRENDS (Data from Databricks Gold Layer)
 HOURLY_PRICES = [28.91, 25.88, 24.61, 26.37, 32.53, 37.89, 30.28, 26.44, 25.39, 25.86, 
                  26.06, 25.47, 25.74, 26.5, 27.67, 27.41, 29.81, 28.23, 26.94, 27.83, 
                  27.42, 27.66, 28.65, 30.02]
 
 # ---------------------------------------------------------
-# 🎨 UI CONFIGURATION
+# 🎨 UI & THEME CONFIGURATION (Dark Mode + BCG Green)
 # ---------------------------------------------------------
-st.set_page_config(page_title="NYC Taxi Fare Predictor", page_icon="🚖", layout="centered")
+st.set_page_config(page_title="NYC Pricing Agent", page_icon="🟢", layout="centered")
 
-# Custom CSS to make it look "Enterprise" (Bigger fonts, cleaner spacing)
+# Force Dark Theme via CSS Injection
 st.markdown("""
     <style>
-    .big-font { font-size:24px !important; font-weight: bold; }
-    .price-tag { font-size: 45px !important; color: #00CC96; font-weight: bold; }
-    .sub-text { font-size: 14px; color: #888; }
+    /* Main Background */
+    .stApp {
+        background-color: #0E1117;
+        color: #FAFAFA;
+    }
+    /* Card/Container Backgrounds */
+    .css-1r6slb0, .css-12oz5g7 {
+        background-color: #262730;
+        border-radius: 10px;
+        padding: 20px;
+    }
+    /* The "Price Tag" Style */
+    .price-tag { 
+        font-size: 48px !important; 
+        font-family: 'Helvetica Neue', sans-serif;
+        color: #179758; /* BCG Green */
+        font-weight: 800; 
+        margin-bottom: 0px;
+    }
+    .sub-label {
+        color: #B0B0B0;
+        font-size: 14px;
+        margin-top: -10px;
+    }
+    /* Agent Alert Box */
+    .agent-box {
+        background-color: #1E3A2F; 
+        border: 1px solid #179758;
+        padding: 15px;
+        border-radius: 8px;
+        color: #E6FFFA;
+    }
     </style>
     """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 🚀 HEADER SECTION
+# 🚀 HEADER
 # ---------------------------------------------------------
-st.title("🚖 NYC Taxi Fare Predictor")
-st.markdown("#### AI-Powered Trip Estimation Engine")
-st.markdown("Use the controls below to simulate a trip. The model utilizes historical data from **2.7 million rides** to predict your fare.")
+st.title("🟢 NYC Pricing Agent")
+st.markdown("**Autonomous Fare Optimization Engine**")
+st.markdown("This agent automates the workflow of finding the optimal departure time, simulating market conditions to minimize your spend.")
 st.divider()
 
 # ---------------------------------------------------------
-# 🎛️ CONTROLS SECTION
+# 🎛️ WORKFLOW INPUTS
 # ---------------------------------------------------------
-st.subheader("1️⃣ Trip Details")
-
+st.subheader("1. Define Mission")
 col1, col2 = st.columns(2)
 
 with col1:
-    # DISTANCE: Clearer labels with "Miles"
-    distance = st.slider("📏 Trip Distance (Miles)", 0.5, 50.0, 5.0, step=0.5)
-    
-    # PASSENGERS: Clean number input
-    passengers = st.number_input("Passengers", 1, 6, 1)
+    distance = st.slider("Target Distance (Miles)", 0.5, 50.0, 5.0, step=0.5)
+    passengers = st.number_input("Passenger Count", 1, 6, 1)
 
 with col2:
-    # TIME: Converted to AM/PM for "Adult" readability
     time_options = ["12 AM", "1 AM", "2 AM", "3 AM", "4 AM", "5 AM", "6 AM", "7 AM", 
                     "8 AM", "9 AM", "10 AM", "11 AM", "12 PM", "1 PM", "2 PM", "3 PM", 
                     "4 PM", "5 PM", "6 PM", "7 PM", "8 PM", "9 PM", "10 PM", "11 PM"]
-    
-    time_label = st.select_slider("⏰ Pickup Time", options=time_options, value="2 PM")
-    
-    # Map label back to 0-23 integer for the math
+    time_label = st.select_slider("Target Time", options=time_options, value="2 PM")
     hour = time_options.index(time_label)
-
-    # DAY TYPE: Professional Segmented Control
-    day_type = st.radio("📅 Day Type", ["Weekday (Mon-Fri)", "Weekend (Sat-Sun)"], horizontal=True)
-    is_weekend = 1 if "Weekend" in day_type else 0
+    
+    day_type = st.radio("Context", ["Weekday", "Weekend"], horizontal=True)
+    is_weekend = 1 if day_type == "Weekend" else 0
 
 # ---------------------------------------------------------
-# 🧮 CALCULATION ENGINE
+# 🧠 AGENT EXECUTION LOOP
 # ---------------------------------------------------------
-def predict_fare(dist, hr, weekend, pax):
+def calculate_fare(dist, hr, weekend, pax):
     day_val = 7 if weekend else 2
-    
-    # The Math
-    cost_base = INTERCEPT
-    cost_dist = dist * COEF_DISTANCE
-    cost_time = hr * COEF_HOUR
-    cost_extra = (day_val * COEF_WEEKEND) + (pax * COEF_PASSENGER)
-    
-    total = cost_base + cost_dist + cost_time + cost_extra
-    return max(5.0, total), cost_base, cost_dist, cost_time, cost_extra
+    # Components
+    c_base = INTERCEPT
+    c_dist = dist * COEF_DISTANCE
+    c_time = hr * COEF_HOUR
+    c_extra = (day_val * COEF_WEEKEND) + (pax * COEF_PASSENGER)
+    total = c_base + c_dist + c_time + c_extra
+    return max(5.0, total), c_base, c_dist, c_time, c_extra
 
-# Run Inference
-price, c_base, c_dist, c_time, c_extra = predict_fare(distance, hour, is_weekend, passengers)
+# 1. Run User Scenario
+current_price, c_base, c_dist, c_time, c_extra = calculate_fare(distance, hour, is_weekend, passengers)
+
+# 2. Agent "Thought Process" (Simulate +/- 3 hours)
+best_price = current_price
+best_hour = hour
+savings = 0.0
+
+for h in range(max(0, hour-3), min(23, hour+4)):
+    sim_price, _, _, _, _ = calculate_fare(distance, h, is_weekend, passengers)
+    if sim_price < best_price:
+        best_price = sim_price
+        best_hour = h
+        savings = current_price - best_price
 
 # ---------------------------------------------------------
-# 💵 RESULTS SECTION
+# 🏁 AGENT REPORT
 # ---------------------------------------------------------
 st.divider()
-st.subheader("2️⃣ Fare Estimate")
+st.subheader("2. Strategic Assessment")
 
-# Use columns to center the price
-c1, c2, c3 = st.columns([1, 2, 1])
+# Layout: Price on Left, Recommendation on Right
+c1, c2 = st.columns([1, 1.5])
+
+with c1:
+    st.markdown('<p class="sub-label">PREDICTED FARE</p>', unsafe_allow_html=True)
+    st.markdown(f'<p class="price-tag">${current_price:.2f}</p>', unsafe_allow_html=True)
+
 with c2:
-    st.markdown(f'<p class="price-tag">${price:.2f}</p>', unsafe_allow_html=True)
-    st.markdown(f"**Estimated for {distance} miles at {time_label}**")
+    if savings > 0.15: # Threshold for recommendation
+        better_time = time_options[best_hour]
+        st.markdown(f"""
+        <div class="agent-box">
+            <b>🚀 OPTIMIZATION FOUND</b><br>
+            If you shift departure to <b>{better_time}</b>, you save <b>${savings:.2f}</b>.<br>
+            <i>The agent recommends rescheduling.</i>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.success("✅ Current selection is optimal. No significant savings found nearby.")
 
+# ---------------------------------------------------------
+# 📊 VISUALIsATION (Dark Mode Friendly)
+# ---------------------------------------------------------
 st.divider()
-
-# ---------------------------------------------------------
-# 📊 INSIGHTS SECTION (The "Glass Box")
-# ---------------------------------------------------------
-st.subheader("3️⃣ Why this Price?")
-st.markdown("Breakdown of the cost drivers based on our analytics engine.")
-
-tab1, tab2 = st.tabs(["💰 Cost Breakdown", "📈 Hourly Trends"])
-
-with tab1:
-    # Clean Bar Chart
-    breakdown_data = pd.DataFrame({
-        "Component": ["Base Rate", "Distance Cost", "Time/Traffic", "Surcharges"],
-        "Amount ($)": [c_base, c_dist, c_time, c_extra]
-    })
+with st.expander("🔎 View Logic (Cost Drivers & Market Trends)"):
     
-    chart = alt.Chart(breakdown_data).mark_bar().encode(
-        x=alt.X('Component', sort="-y"),
-        y='Amount ($)',
-        tooltip=['Component', 'Amount ($)'],
-        color=alt.value("#00CC96")  # BCG Green
-    ).properties(height=300)
+    tab1, tab2 = st.tabs(["Cost Structure", "Market Trends"])
     
-    st.altair_chart(chart, use_container_width=True)
-
-with tab2:
-    # Hourly Trend Line
-    trend_data = pd.DataFrame({
-        "Hour": range(24),
-        "Avg Fare ($)": HOURLY_PRICES
-    })
-    
-    # Base Line
-    line = alt.Chart(trend_data).mark_line(color='#808080').encode(
-        x='Hour', 
-        y='Avg Fare ($)'
-    )
-    
-    # Red Dot for Current Selection
-    point = alt.Chart(pd.DataFrame({'Hour': [hour], 'Avg Fare ($)': [HOURLY_PRICES[hour]]}))\
-        .mark_point(color='#FF4B4B', size=150, filled=True)\
-        .encode(x='Hour', y='Avg Fare ($)')
+    with tab1:
+        # Renamed Component to "Time of Day Adj."
+        breakdown_data = pd.DataFrame({
+            "Driver": ["Distance Cost", "Base Rate", "Time of Day Adj.", "Surcharges"],
+            "Cost ($)": [c_dist, c_base, c_time, c_extra]
+        })
         
-    st.altair_chart(line + point, use_container_width=True)
-    st.caption(f"The red dot shows the average market rate for {time_label}.")
+        c = alt.Chart(breakdown_data).mark_bar().encode(
+            x=alt.X('Driver', sort="-y", axis=alt.Axis(labelColor='white', titleColor='white')),
+            y=alt.Y('Cost ($)', axis=alt.Axis(labelColor='white', titleColor='white')),
+            color=alt.value("#179758") # BCG Green
+        ).properties(background='transparent')
+        
+        st.altair_chart(c, use_container_width=True)
+        
+    with tab2:
+        trend_data = pd.DataFrame({"Hour": range(24), "Avg Fare": HOURLY_PRICES})
+        
+        # Line Chart with Gradient
+        line = alt.Chart(trend_data).mark_area(
+            line={'color':'#179758'},
+            color=alt.Gradient(
+                gradient='linear',
+                stops=[alt.GradientStop(color='#179758', offset=0),
+                       alt.GradientStop(color='transparent', offset=1)],
+                x1=1, x2=1, y1=1, y2=0
+            )
+        ).encode(
+            x=alt.X('Hour', axis=alt.Axis(labelColor='white')),
+            y=alt.Y('Avg Fare', axis=alt.Axis(labelColor='white'))
+        ).properties(background='transparent')
+        
+        # Current selection dot
+        point = alt.Chart(pd.DataFrame({'Hour': [hour], 'Avg Fare': [HOURLY_PRICES[hour]]}))\
+            .mark_point(color='white', size=100, filled=True)\
+            .encode(x='Hour', y='Avg Fare')
+
+        st.altair_chart(line + point, use_container_width=True)
