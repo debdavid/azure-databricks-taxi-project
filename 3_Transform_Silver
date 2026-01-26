@@ -4,7 +4,7 @@ from pyspark.sql.functions import col, current_timestamp, year
 storage_account_name = "stresumeprojectdd"
 container_name = "nyctaxi"
 # ⚠️ PASTE YOUR KEY BELOW
-access_key = "PASTER_YOUR_ACCESS_KEY_HERE"
+access_key = "PASTE_YOUR_ACCESS_KEY_HERE"
 
 # 1. Authenticate
 spark.conf.set(
@@ -13,7 +13,6 @@ spark.conf.set(
 )
 
 # 2. READ: Load the Raw (Bronze) Data
-# We tell Spark to read the parquet file we downloaded earlier
 file_path = f"wasbs://{container_name}@{storage_account_name}.blob.core.windows.net/raw/yellow_tripdata_2024-01.parquet"
 print(f"📖 Reading raw data from: {file_path}")
 
@@ -21,39 +20,49 @@ df_raw = spark.read.parquet(file_path)
 print(f"✅ Loaded {df_raw.count()} rows.")
 
 # 3. TRANSFORM: Clean and Rename
-# We are creating a new dataframe 'df_silver' with changes
-print("🧹 Cleaning data...")
+print("🧹 Cleaning data (V3: Strict Physics Checks)...")
 
 df_silver = (df_raw
-    # Rename columns to be cleaner (snake_case)
     .withColumnRenamed("tpep_pickup_datetime", "pickup_time")
     .withColumnRenamed("tpep_dropoff_datetime", "dropoff_time")
     .withColumnRenamed("passenger_count", "passengers")
     .withColumnRenamed("total_amount", "total_cost")
     
-    # Filter 1: Remove financial garbage (Negative costs or 0 passengers)
+    # Filter 1: Basic Validity (No negative money, no empty cabs)
     .filter(col("total_cost") > 0)
     .filter(col("passengers") > 0)
-
-    # Filter 2: Remove Time Travel data (The Fix!) 🕒
+    
+    # Filter 2: Time Travel Fix (The Year 2024) 🕒
     .filter(year(col("pickup_time")) == 2024)
     
-    # Add a timestamp so we know when we processed this (ingestion date)
+    # Filter 3: Physics Check (No stationary trips, no GPS errors) 🔬
+    .filter(col("trip_distance") > 0)
+    .filter(col("trip_distance") < 500)
+    
+    # Add Auditing Column
     .withColumn("ingestion_date", current_timestamp())
 )
 
 print(f"✅ Cleaned data has {df_silver.count()} rows.")
 
-# 4. WRITE: Save as a Delta Table (Silver Layer)
-# We save this to a new folder called 'silver'
+# 4. WRITE: Overwrite the Silver Table
 save_path = f"wasbs://{container_name}@{storage_account_name}.blob.core.windows.net/silver/taxi_trips"
-
 print(f"💾 Saving to Delta Lake at: {save_path}...")
 
 (df_silver.write
-    .format("delta")           # The high-performance format
-    .mode("overwrite")         # If run again, replace the old table
+    .format("delta")
+    .mode("overwrite")
     .save(save_path)
 )
 
-print("✅ Success! Silver Layer created.")
+print("✅ Success! Silver Layer updated.")
+
+# 5. DATA QUALITY CHECK (Profiling)
+# This verification step ensures our logic successfully removed outliers.
+print("\n🕵️‍♂️ Profiling Final Data Stats...")
+
+display(df_silver.select(
+    "passengers",
+    "total_cost",
+    "trip_distance"
+).summary("min", "mean", "max"))
