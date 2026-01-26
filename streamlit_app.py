@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import altair as alt
+import time # Imported to simulate AI "thinking" time
 
 # ---------------------------------------------------------
 # 🧠 AGENT BRAIN (Model Weights)
@@ -15,20 +16,20 @@ HOURLY_PRICES = [28.91, 25.88, 24.61, 26.37, 32.53, 37.89, 30.28, 26.44, 25.39, 
                  27.42, 27.66, 28.65, 30.02]
 
 # ---------------------------------------------------------
-# 🎨 UI & MODERN DESIGN CONFIGURATION
+# 🎨 UI CONFIGURATION
 # ---------------------------------------------------------
 st.set_page_config(page_title="NYC Pricing Agent", page_icon="🚖", layout="centered")
 
 st.markdown("""
     <style>
-    /* --- 1. CLEAN EXECUTIVE BACKGROUND (The "Green Shade" you liked) --- */
+    /* Executive Green Background */
     .stApp {
         background: linear-gradient(135deg, #f5f7fa 0%, #e4f0e8 100%);
     }
     
-    /* --- 2. THE MEDALLION LOGO --- */
+    /* Medallion Logo */
     .medallion {
-        background-color: #f1c40f; /* Taxi Yellow */
+        background-color: #f1c40f; 
         color: #000000;
         width: 90px;
         height: 90px;
@@ -46,19 +47,15 @@ st.markdown("""
         margin: auto;
     }
     
-    /* --- 3. CARDS & CONTAINERS --- */
+    /* Cards */
     div.css-1r6slb0, div.css-12oz5g7 {
         background-color: #ffffff;
         border-radius: 12px;
         padding: 25px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.05); /* Soft shadow */
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
         border: 1px solid #e1e4e8;
     }
     
-    /* Typography */
-    h1 { letter-spacing: -1px; color: #1a252f; font-weight: 700;}
-    h3 { font-size: 14px; text-transform: uppercase; color: #7f8c8d; letter-spacing: 1.5px; font-weight: 700; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
-
     /* Price Card */
     .price-card {
         background: linear-gradient(135deg, #ffffff 0%, #f0fff4 100%);
@@ -81,37 +78,18 @@ st.markdown("""
         color: #2c3e50;
         font-weight: 700;
     }
-    
-    /* Disclaimer */
-    .disclaimer {
-        font-size: 11px;
-        color: #95a5a6;
-        margin-top: 50px;
-        text-align: center;
-        background-color: rgba(255,255,255,0.5);
-        padding: 20px;
-        border-radius: 8px;
-        border: 1px solid #ddd;
-    }
     </style>
     """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 🚕 HEADER SECTION
+# 🚕 HEADER
 # ---------------------------------------------------------
 h_col1, h_col2 = st.columns([1, 4])
-
 with h_col1:
-    st.markdown("""
-        <div class="medallion">
-            NYC<br>TAXI
-        </div>
-    """, unsafe_allow_html=True)
-
+    st.markdown('<div class="medallion">NYC<br>TAXI</div>', unsafe_allow_html=True)
 with h_col2:
     st.title("NYC Price Check")
     st.markdown("**AI-Powered Fair Fare Estimator**")
-    st.caption("Compare your potential trip cost against historical market data.")
 
 st.divider()
 
@@ -136,7 +114,7 @@ with col2:
     is_weekend = 1 if day_type == "Weekend" else 0
 
 # ---------------------------------------------------------
-# 🧠 LOGIC ENGINE
+# 🧠 CALCULATION ENGINE
 # ---------------------------------------------------------
 def calculate_fare(dist, hr, weekend, pax):
     day_val = 7 if weekend else 2
@@ -152,13 +130,12 @@ low_range = price * 0.95
 high_range = price * 1.15 
 
 # ---------------------------------------------------------
-# 🏁 ASSESSMENT REPORT
+# 🏁 REPORT
 # ---------------------------------------------------------
 st.divider()
 st.markdown("### 2. Price Check Result")
 
 c1, c2 = st.columns([1.3, 1])
-
 with c1:
     st.markdown(f"""
     <div class="price-card">
@@ -169,88 +146,60 @@ with c1:
         </div>
     </div>
     """, unsafe_allow_html=True)
-
 with c2:
-    # --- INTELLIGENT ADVICE LOGIC ---
     if distance < 1.5:
-        msg = "🚶 **Walkable:** For trips under 1.5 miles, walking/cycling is often faster than NYC traffic."
-        icon = "info"
-    elif distance > 20:
-        msg = "✈️ **Long Haul:** For airports (JFK/EWR), check for flat-rate 'Airport Fares' before accepting the meter."
-        icon = "warning"
+        st.info("🚶 **Walkable:** Short trip detected. Walking may be faster.")
     elif 16 <= hour <= 19 and not is_weekend:
-        msg = "🚦 **Rush Hour:** Heavy congestion (4PM-7PM). Expect the higher end of the typical range."
-        icon = "warning"
-    elif 0 <= hour <= 4:
-        msg = "🌙 **Night Owl:** Low traffic, minimal surcharges. Driver availability may vary."
-        icon = "success"
+        st.warning("🚦 **Rush Hour:** Expect heavy traffic (4-7 PM).")
     else:
-        msg = "✅ **Standard Rate:** Conditions align with market averages. Proceed with confidence."
-        icon = "success"
-
-    if icon == "warning":
-        st.warning(msg)
-    elif icon == "info":
-        st.info(msg)
-    else:
-        st.success(msg)
+        st.success("✅ **Standard Rate:** Conditions are normal.")
 
 # ---------------------------------------------------------
-# 📊 TRANSPARENCY
+# 💬 FAKE GEN-AI AGENT (The "Wizard of Oz")
 # ---------------------------------------------------------
 st.divider()
-st.markdown("### 3. Cost Breakdown")
+st.markdown("### 3. Agent Consultant")
+st.caption("Ask the agent about your trip (e.g., 'Is this expensive?', 'How do I save money?', 'JFK trip')")
 
-tab1, tab2 = st.tabs(["💵 Cost Structure", "📈 Hourly Trends"])
+# Initialize chat history
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-with tab1:
-    breakdown_data = pd.DataFrame({
-        "Component": ["Distance Rate", "Base Fare", "Time Fee", "Surcharges"],
-        "Cost ($)": [c_dist, c_base, c_time, c_extra]
-    })
-    
-    chart = alt.Chart(breakdown_data).mark_bar(cornerRadiusTopLeft=5, cornerRadiusTopRight=5).encode(
-        x=alt.X('Component', sort="-y", title=None),
-        y=alt.Y('Cost ($)', title=None),
-        color=alt.value("#179758"),
-        tooltip=['Component', 'Cost ($)']
-    ).properties(height=200)
-    
-    st.altair_chart(chart, use_container_width=True)
+# Display chat messages from history on app rerun
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
-with tab2:
-    trend_df = pd.DataFrame({"Hour": range(24), "Avg Fare": HOURLY_PRICES})
-    
-    line = alt.Chart(trend_df).mark_area(
-        line={'color':'#179758'},
-        color=alt.Gradient(
-            gradient='linear',
-            stops=[alt.GradientStop(color='#179758', offset=0),
-                   alt.GradientStop(color='transparent', offset=1)],
-            x1=1, x2=1, y1=1, y2=0
-        )
-    ).encode(
-        x=alt.X('Hour', title="Hour of Day"),
-        y=alt.Y('Avg Fare', title="Average Market Rate ($)")
-    )
-    
-    point_df = pd.DataFrame({'Hour': [hour], 'Avg Fare': [HOURLY_PRICES[hour]]})
-    point = alt.Chart(point_df).mark_point(fill='red', color='red', size=100).encode(
-        x='Hour',
-        y='Avg Fare'
-    )
-    
-    st.altair_chart(line + point, use_container_width=True)
-    st.caption(f"🔴 Red dot shows the average market rate for {time_label}.")
+# React to user input
+if prompt := st.chat_input("Ask about your fare..."):
+    # 1. Display user message
+    st.chat_message("user").markdown(prompt)
+    st.session_state.messages.append({"role": "user", "content": prompt})
 
-# ---------------------------------------------------------
-# ⚖️ DISCLAIMER
-# ---------------------------------------------------------
-st.markdown("""
-    <div class="disclaimer">
-        <b>Data Transparency Statement:</b><br>
-        This AI model was trained on NYC Taxi & Limousine Commission (TLC) trip record data from <b>January 2024</b>. 
-        Estimates are based on historical patterns and linear regression weights. 
-        Actual real-world fares may vary due to live traffic, weather conditions, or new regulatory surcharges.
-    </div>
-    """, unsafe_allow_html=True)
+    # 2. Simulate "AI Thinking" time
+    with st.spinner("Agent is analyzing market data..."):
+        time.sleep(1.2) # Fake latency to feel real
+
+    # 3. "Fake" Logic Router (Rule-Based)
+    prompt_lower = prompt.lower()
+    
+    # RESPONSE LOGIC
+    if "save" in prompt_lower or "cheaper" in prompt_lower:
+        response = f"To save money on this {distance} mile trip, try travelling outside of rush hour (4PM-7PM). Currently, the base estimate is **${price:.2f}**."
+    elif "traffic" in prompt_lower or "rush" in prompt_lower:
+        if 16 <= hour <= 19:
+            response = "Yes, you are currently in the **Rush Hour window (4PM - 7PM)**. My model adds a premium for time-based delays."
+        else:
+            response = "Traffic conditions are currently standard. My data shows no heavy congestion surcharges for this time."
+    elif "airport" in prompt_lower or "jfk" in prompt_lower or "lga" in prompt_lower:
+        response = "⚠️ **Airport Alert:** If you are going to JFK, NYC taxis often have a **Flat Fare (approx $70 + tolls)**. Do not use the meter if the driver offers a flat rate!"
+    elif "accurate" in prompt_lower or "real" in prompt_lower:
+        response = "My predictions are based on **2.7 million real trip records** from Jan 2024. While highly accurate for benchmarking, live weather or accidents can affect the final meter."
+    else:
+        # Generic "Fall back" that sounds smart
+        response = f"Based on a distance of **{distance} miles** at **{time_label}**, a fair price is between **${low_range:.2f}** and **${high_range:.2f}**. Always verify the meter starts at the correct base rate."
+
+    # 4. Display Assistant Message
+    with st.chat_message("assistant"):
+        st.markdown(response)
+    st.session_state.messages.append({"role": "assistant", "content": response})
