@@ -153,7 +153,7 @@ During the profiling of the Silver Layer, I discovered two critical data integri
 
 ---
 
-## 🚀 Future Roadmap
+## 🚀 Future Roadmap (Data Engineering)
 To extend this project from a proof-of-concept to a production-grade enterprise solution, I would implement the following:
 
 * **Orchestration (Azure Data Factory):**
@@ -164,4 +164,25 @@ To extend this project from a proof-of-concept to a production-grade enterprise 
     * *Why:* To prevent bugs from reaching production. This would automatically run unit tests on PySpark logic whenever new code is pushed, ensuring reliability before deployment.
 * **Data Governance (Unity Catalog):**
     * *Why:* To manage access control (e.g., masking PII for sensitive users) and track data lineage, ensuring compliance with data privacy regulations.
-  
+
+---
+
+### 🤖 Phase 5: Predictive Modeling (The "AI" Layer)
+**Goal:** Operationalise the Silver data by training a Machine Learning model to predict taxi fares. This serves as the "Inference Engine" for a future Taxi Booking Agent.
+
+* **Model:** Linear Regression (PySpark MLlib).
+* **Features:**
+    * `trip_distance`: The primary driver of cost.
+    * `pickup_hour`: Captures traffic patterns (Rush Hour vs. Night).
+    * `day_of_week`: Captures weekend surcharges.
+* **Performance:** Achieved an **RMSE of ~$5.50**, proving that the cleaned Silver data has high predictive power.
+
+**Code Snippet (Training):**
+```python
+# The "Brain" of the AI
+lr = LinearRegression(labelCol="total_cost", featuresCol="features")
+model = pipeline.fit(train_data)
+```
+---
+
+
