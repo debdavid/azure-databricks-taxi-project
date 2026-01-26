@@ -1,0 +1,52 @@
+from pyspark.sql.functions import col, to_date, sum, avg, count, round
+
+# --- CONFIGURATION ---
+storage_account_name = "stresumeprojectdd"
+container_name = "nyctaxi"
+# ⚠️ PASTE YOUR KEY BELOW
+access_key = "PASTE_YOUR_ACCESS_KEY_HERE"
+
+# 1. Authenticate
+spark.conf.set(
+    f"fs.azure.account.key.{storage_account_name}.blob.core.windows.net",
+    access_key
+)
+
+# 2. READ: Load the Clean (Silver) Data
+# We read from the Delta Table we created in the last step
+silver_path = f"wasbs://{container_name}@{storage_account_name}.blob.core.windows.net/silver/taxi_trips"
+print(f"📖 Reading Silver data from: {silver_path}")
+
+df_silver = spark.read.format("delta").load(silver_path)
+
+# 3. TRANSFORM: Business Aggregations (The "Gold" Logic)
+# We group by DATE to calculate totals for every single day
+print("📊 Calculating Daily Revenue...")
+
+df_gold = (df_silver
+    .withColumn("date", to_date(col("pickup_time")))
+    .groupBy("date")
+    .agg(
+        count("*").alias("total_trips"),
+        sum("total_cost").alias("total_revenue"),
+        round(avg("total_cost"), 2).alias("avg_cost_per_trip"),
+        round(avg("trip_distance"), 2).alias("avg_distance_miles")
+    )
+    .orderBy("date")
+)
+
+# 4. WRITE: Save as Gold Table
+gold_path = f"wasbs://{container_name}@{storage_account_name}.blob.core.windows.net/gold/daily_revenue"
+print(f"💾 Saving Gold Report to: {gold_path}...")
+
+(df_gold.write
+    .format("delta")
+    .mode("overwrite")
+    .save(gold_path)
+)
+
+print("✅ Success! Gold Layer (Daily Revenue) created.")
+
+# 5. SHOW: The Final Result
+print("\n🏆 Sample of the Gold Report:")
+display(df_gold.limit(5))
