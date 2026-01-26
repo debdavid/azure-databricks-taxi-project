@@ -16,86 +16,97 @@ HOURLY_PRICES = [28.91, 25.88, 24.61, 26.37, 32.53, 37.89, 30.28, 26.44, 25.39, 
                  27.42, 27.66, 28.65, 30.02]
 
 # ---------------------------------------------------------
-# 🎨 UI CONFIGURATION (Wide Mode for Command Centre Feel)
+# 🎨 UI CONFIGURATION
 # ---------------------------------------------------------
 st.set_page_config(page_title="NYC Pricing Agent", page_icon="🚖", layout="wide")
 
 st.markdown("""
     <style>
-    /* 1. BACKGROUND (Executive Green Gradient) */
+    /* 1. BACKGROUND */
     .stApp {
         background: linear-gradient(135deg, #f5f7fa 0%, #e4f0e8 100%);
     }
     
-    /* 2. THE MEDALLION LOGO */
+    /* 2. LOGO */
     .medallion {
         background-color: #f1c40f; 
         color: #000000;
-        width: 80px;
-        height: 80px;
-        border-radius: 16px;
+        width: 70px;
+        height: 70px;
+        border-radius: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-family: 'Helvetica Neue', sans-serif;
         font-weight: 800;
-        font-size: 22px;
+        font-size: 20px;
         line-height: 1.1;
         text-align: center;
-        box-shadow: 0 6px 0px #c29d0b;
-        border: 3px solid #000000;
+        box-shadow: 0 4px 0px #c29d0b;
+        border: 2px solid #000000;
         margin-right: 15px;
     }
     
-    /* 3. CARDS & CONTAINERS */
+    /* 3. MAIN CARDS */
     div.css-1r6slb0, div.css-12oz5g7 {
         background-color: #ffffff;
         border-radius: 12px;
         padding: 25px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         border: 1px solid #e1e4e8;
     }
     
-    /* Price Card */
+    /* 4. PRICE CARD (Full Width Banner Style) */
     .price-card {
-        background: linear-gradient(135deg, #ffffff 0%, #f0fff4 100%);
-        border-left: 6px solid #179758;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 4px 12px rgba(23, 151, 88, 0.1);
-        margin-bottom: 20px;
+        background: white;
+        border-left: 8px solid #179758;
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
     }
     .price-main {
-        font-size: 42px;
+        font-size: 48px;
         font-weight: 800;
         color: #179758;
         margin: 0;
-        line-height: 1.1;
+        line-height: 1;
     }
     .price-sub {
-        font-size: 12px;
+        font-size: 14px;
         text-transform: uppercase;
         letter-spacing: 1.5px;
-        color: #2c3e50;
+        color: #555;
         font-weight: 700;
     }
+    .price-small {
+        font-size: 16px;
+        color: #888;
+        font-weight: 500;
+        text-align: right;
+    }
 
-    /* --- RIGHT PANEL: CHAT INTERFACE --- */
+    /* 5. RIGHT PANEL (Chat Box) */
     .chat-container {
-        border-left: 1px solid #d1d5db;
+        background-color: white;
+        border-radius: 12px;
+        border: 1px solid #e1e4e8;
+        padding: 10px;
         height: 100%;
-        padding-left: 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
     .chat-header {
         background-color: #1a252f;
         color: white;
-        padding: 15px;
-        border-radius: 10px;
+        padding: 12px;
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 15px;
     }
     .pulsing-dot {
         height: 8px;
@@ -115,28 +126,28 @@ st.markdown("""
     
     /* Disclaimer */
     .disclaimer {
-        font-size: 10px;
+        font-size: 11px;
         color: #95a5a6;
-        margin-top: 30px;
-        padding-top: 10px;
+        margin-top: 40px;
         border-top: 1px solid #eee;
+        padding-top: 15px;
     }
     </style>
     """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 🏗️ LAYOUT STRUCTURE (Split Screen)
+# 🏗️ LAYOUT STRUCTURE
 # ---------------------------------------------------------
-# We create two main columns: Left (App) and Right (Chat)
-left_col, right_col = st.columns([2, 1.2], gap="large")
+# [2.5, 1] Ratio -> Gives the main app much more breathing room
+left_col, right_col = st.columns([2.5, 1], gap="large")
 
 # =========================================================
 # 👈 LEFT COLUMN: THE WORKBENCH
 # =========================================================
 with left_col:
     
-    # 1. Header with Medallion
-    h_c1, h_c2 = st.columns([1, 5])
+    # Header
+    h_c1, h_c2 = st.columns([0.8, 5])
     with h_c1:
         st.markdown('<div class="medallion">NYC<br>TAXI</div>', unsafe_allow_html=True)
     with h_c2:
@@ -145,7 +156,7 @@ with left_col:
     
     st.divider()
 
-    # 2. Inputs
+    # 1. Inputs
     st.markdown("### 1. Journey Context")
     
     i_c1, i_c2 = st.columns(2)
@@ -161,7 +172,7 @@ with left_col:
         day_type = st.radio("📅 Day Type", ["Weekday", "Weekend"], horizontal=True)
         is_weekend = 1 if day_type == "Weekend" else 0
 
-    # 3. Calculation Logic
+    # Logic
     def calculate_fare(dist, hr, weekend, pax):
         day_val = 7 if weekend else 2
         c_base = INTERCEPT
@@ -175,30 +186,33 @@ with left_col:
     low_range = price * 0.95 
     high_range = price * 1.15 
 
-    # 4. Results Section
+    # 2. Results (Stacked for better alignment)
     st.divider()
     st.markdown("### 2. Price Check Result")
     
-    r_c1, r_c2 = st.columns([1.2, 1])
-    with r_c1:
-        st.markdown(f"""
-        <div class="price-card">
+    # Custom HTML Card
+    st.markdown(f"""
+    <div class="price-card">
+        <div>
             <div class="price-sub">Typical Market Range</div>
             <div class="price-main">${low_range:.2f} - ${high_range:.2f}</div>
-            <div style="color: #555; font-size: 14px; margin-top: 8px; font-weight: 500;">
-                Estimated Fair Price: <b>${price:.2f}</b>
-            </div>
         </div>
-        """, unsafe_allow_html=True)
-    with r_c2:
-        if distance < 1.5:
-            st.info("🚶 **Walkable:** Short trip detected. Walking or cycling may be faster than sitting in NYC traffic.")
-        elif 16 <= hour <= 19 and not is_weekend:
-            st.warning("🚦 **Rush Hour:** Expect heavy traffic (4-7 PM). Prices reflect the higher end of the range.")
-        else:
-            st.success("✅ **Standard Rate:** Conditions align with market averages. Proceed with confidence.")
+        <div class="price-small">
+            Target Estimate<br>
+            <span style="font-size: 24px; color: #333; font-weight: bold;">${price:.2f}</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Advice Banner (Full Width)
+    if distance < 1.5:
+        st.info("🚶 **Walkable:** Short trip detected. Walking or cycling may be faster than sitting in NYC traffic.")
+    elif 16 <= hour <= 19 and not is_weekend:
+        st.warning("🚦 **Rush Hour:** Expect heavy traffic (4-7 PM). Prices reflect the higher end of the range.")
+    else:
+        st.success("✅ **Standard Rate:** Conditions align with market averages. Proceed with confidence.")
 
-    # 5. Visualisations
+    # 3. Visualisation
     st.markdown("### 3. Cost Visualisation")
     
     tab1, tab2 = st.tabs(["💵 Cost Structure", "📈 Hourly Trends"])
@@ -213,7 +227,7 @@ with left_col:
             y=alt.Y('Cost ($)', title=None),
             color=alt.value("#179758"),
             tooltip=['Component', 'Cost ($)']
-        ).properties(height=200)
+        ).properties(height=250)
         st.altair_chart(chart, use_container_width=True)
 
     with tab2:
@@ -229,7 +243,7 @@ with left_col:
         ).encode(
             x=alt.X('Hour', title="Hour of Day"),
             y=alt.Y('Avg Fare', title="Avg Market Rate ($)")
-        ).properties(height=200)
+        ).properties(height=250)
         
         point_df = pd.DataFrame({'Hour': [hour], 'Avg Fare': [HOURLY_PRICES[hour]]})
         point = alt.Chart(point_df).mark_point(fill='red', color='red', size=80).encode(x='Hour', y='Avg Fare')
@@ -245,53 +259,48 @@ with left_col:
 
 
 # =========================================================
-# 👉 RIGHT COLUMN: THE AI AGENT (Always Visible)
+# 👉 RIGHT COLUMN: THE AI AGENT (Sidebar Style)
 # =========================================================
 with right_col:
-    # Sticky Header
-    st.markdown("""
-    <div class="chat-header">
-        <div style="font-weight: bold; font-size: 16px;">🤖 Live Consultant</div>
-        <div style="font-size: 11px; color: #2ecc71; font-weight: bold;"><span class="pulsing-dot"></span>ONLINE</div>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Initialize Chat
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-        welcome_msg = "Hello! I am analysing the market data for your trip. Ask me about **traffic**, **airport rates**, or how to **save money**."
-        st.session_state.messages.append({"role": "assistant", "content": welcome_msg})
+    # Use a container to create the "White Panel" look
+    with st.container():
+        st.markdown('<div class="chat-header"><div style="font-weight: bold; font-size: 14px;">🤖 Live Consultant</div><div style="font-size: 10px; color: #2ecc71; font-weight: bold;"><span class="pulsing-dot"></span>ONLINE</div></div>', unsafe_allow_html=True)
+        
+        # Initialize Chat
+        if "messages" not in st.session_state:
+            st.session_state.messages = []
+            welcome_msg = "Hello! I am analysing the market data. Ask me about **traffic**, **airport rates**, or how to **save money**."
+            st.session_state.messages.append({"role": "assistant", "content": welcome_msg})
 
-    # Display History
-    # We use a container height to make it scrollable if it gets long
-    with st.container(height=600):
-        for message in st.session_state.messages:
-            with st.chat_message(message["role"]):
-                st.markdown(message["content"])
+        # History
+        # Fixed height to ensure it doesn't stretch the page too much
+        with st.container(height=550):
+            for message in st.session_state.messages:
+                with st.chat_message(message["role"]):
+                    st.markdown(message["content"])
 
-        # Chat Input (Inside the container context)
-        if prompt := st.chat_input("Ask about your fare..."):
-            st.chat_message("user").markdown(prompt)
-            st.session_state.messages.append({"role": "user", "content": prompt})
+            # Input
+            if prompt := st.chat_input("Ask about your fare..."):
+                st.chat_message("user").markdown(prompt)
+                st.session_state.messages.append({"role": "user", "content": prompt})
 
-            with st.spinner("Consulting knowledge base..."):
-                time.sleep(1.2) # Simulated Latency
+                with st.spinner("Processing..."):
+                    time.sleep(1.0) 
 
-            # FAKE AI LOGIC
-            prompt_lower = prompt.lower()
-            
-            if "save" in prompt_lower or "cheaper" in prompt_lower:
-                response = f"To save on this **{distance} mile** trip, consider travelling outside of rush hour (4PM-7PM). The current fair price is **${price:.2f}**."
-            elif "traffic" in prompt_lower or "rush" in prompt_lower:
-                if 16 <= hour <= 19:
-                    response = "⚠️ **Heavy Traffic Alert:** You are selecting a pickup during **Rush Hour (4PM - 7PM)**. My model includes a time-penalty, but real-world delays could increase the metre."
+                # LOGIC
+                prompt_lower = prompt.lower()
+                if "save" in prompt_lower or "cheaper" in prompt_lower:
+                    response = f"To save on this **{distance} mile** trip, consider travelling outside of rush hour (4PM-7PM). The current fair price is **${price:.2f}**."
+                elif "traffic" in prompt_lower or "rush" in prompt_lower:
+                    if 16 <= hour <= 19:
+                        response = "⚠️ **Heavy Traffic Alert:** You are selecting a pickup during **Rush Hour (4PM - 7PM)**. My model includes a time-penalty."
+                    else:
+                        response = "Traffic is currently moderate. You are outside the peak congestion window."
+                elif "airport" in prompt_lower or "jfk" in prompt_lower:
+                    response = "✈️ **Airport Advice:** For JFK trips, NYC taxis often use a **Flat Fare** (approx $70 + tolls). Verify this with the driver!"
                 else:
-                    response = "Traffic is currently moderate. You are outside the peak congestion window."
-            elif "airport" in prompt_lower or "jfk" in prompt_lower or "lga" in prompt_lower:
-                response = "✈️ **Airport Advice:** For JFK trips, NYC taxis often use a **Flat Fare** (approx $70 + tolls). Verify this with the driver before starting the metre!"
-            else:
-                response = f"Based on **2.7 million historical records**, a trip of **{distance} miles** at **{time_label}** typically costs between **${low_range:.2f}** and **${high_range:.2f}**. Always verify the metre starts correctly."
+                    response = f"Based on **2.7 million historical records**, a trip of **{distance} miles** at **{time_label}** typically costs between **${low_range:.2f}** and **${high_range:.2f}**. Always verify the metre starts correctly."
 
-            with st.chat_message("assistant"):
-                st.markdown(response)
-            st.session_state.messages.append({"role": "assistant", "content": response})
+                with st.chat_message("assistant"):
+                    st.markdown(response)
+                st.session_state.messages.append({"role": "assistant", "content": response})
