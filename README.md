@@ -62,7 +62,7 @@ The pipeline follows the **Medallion Architecture** (Bronze → Silver → Gold)
 
 *Figure 1: Successful ingestion of NYC Taxi data into Azure Blob Storage.*
 
----
+
 
 ### 🥈 Phase 2: Silver Layer (Transformation & Cleaning)
 **Goal:** Cleanse and validate data to ensure it is trusted for downstream analysis.
@@ -79,7 +79,7 @@ The pipeline follows the **Medallion Architecture** (Bronze → Silver → Gold)
 
 *Figure 2: Removed approximately ~200,000 invalid records (~7% of source data) to improve analytical accuracy.*
 
----
+
 
 ### 🥇 Phase 4: Gold Layer (Business Aggregation)
 **Goal:** Create high-level business metrics optimised for dashboarding and reporting.
