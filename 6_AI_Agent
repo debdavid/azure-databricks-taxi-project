@@ -1,0 +1,62 @@
+# ---------------------------------------------------------
+# 🤖 PHASE 6: THE AI AGENT (Inference Engine)
+# Goal: "Serve" the model so a user can ask questions.
+# ---------------------------------------------------------
+
+# 1. EXTRACT THE BRAIN 🧠
+# We extract the math formula from the trained Linear Regression model.
+# Formula: Price = Intercept + (Distance * W1) + (Hour * W2) + ...
+
+# We grab the actual LinearRegressionModel from the last stage of the pipeline
+lr_model = model.stages[-1]
+
+intercept = lr_model.intercept
+weights = lr_model.coefficients
+
+print(f"\n🤖 Model Weights for Streamlit App:")
+print(f"INTERCEPT = {intercept:.4f}")
+print(f"COEF_DISTANCE = {weights[0]:.4f}")
+print(f"COEF_HOUR = {weights[1]:.4f}")
+print(f"COEF_WEEKEND = {weights[2]:.4f}")
+print(f"COEF_PASSENGER = {weights[3]:.4f}")
+
+# 2. BUILD THE AGENT CLASS 🏗️
+class TaxiFareAgent:
+    def __init__(self, intercept, weights):
+        self.intercept = intercept
+        self.weights = weights
+    
+    def predict(self, distance_miles, hour_of_day, is_weekend=False, passengers=1):
+        """
+        The 'Tool' that calculates the price.
+        """
+        # Map weekend boolean to number (assuming day_of_week feature logic)
+        # Note: Spark's dayofweek usually treats Sun=1, Sat=7. 
+        # For this demo, we simplify the binary 'is_weekend' check.
+        day_val = 7 if is_weekend else 2 
+        
+        # The Math (Dot Product)
+        # Features must match the order of VectorAssembler: [distance, hour, day, passengers]
+        price = (self.intercept + 
+                 (distance_miles * self.weights[0]) + 
+                 (hour_of_day * self.weights[1]) + 
+                 (day_val * self.weights[2]) + 
+                 (passengers * self.weights[3]))
+        
+        return max(5.0, price) # Minimum fare guardrail
+
+    def ask(self, query_distance, query_hour):
+        """
+        The 'Interface' that talks to the user.
+        """
+        price = self.predict(query_distance, query_hour)
+        return f"🚕 AGENT: For a {query_distance} mile trip at {query_hour}:00, I estimate the fare will be ${price:.2f}."
+
+# 3. RUN THE AGENT 🚀
+agent = TaxiFareAgent(intercept, weights)
+
+print("\n💬 User: I need to go to JFK Airport (15 miles) at 5 PM. How much?")
+print(agent.ask(15, 17))
+
+print("\n💬 User: I'm just going down the street (2 miles) at 2 AM.")
+print(agent.ask(2, 2))
