@@ -17,38 +17,60 @@ HOURLY_PRICES = [28.91, 25.88, 24.61, 26.37, 32.53, 37.89, 30.28, 26.44, 25.39, 
 # ---------------------------------------------------------
 # 🎨 UI & MODERN DESIGN CONFIGURATION
 # ---------------------------------------------------------
-st.set_page_config(page_title="NYC Pricing Agent", page_icon="🚕", layout="centered")
+st.set_page_config(page_title="NYC Pricing Agent", page_icon="🚖", layout="centered")
 
 st.markdown("""
     <style>
-    /* --- PREMIUM BACKGROUND EFFECT --- */
-    /* Combines the gradient with a subtle "data grid" geometric pattern */
+    /* --- 1. VISIBLE GEOMETRIC TEXTURE BACKGROUND --- */
     .stApp {
-        background-color: #f5f7fa;
-        background-image:  linear-gradient(135deg, rgba(245, 247, 250, 0.9) 0%, rgba(228, 240, 232, 0.9) 100%),
-                           radial-gradient(circle at 50% 50%, #e0e0e0 1px, transparent 1px);
-        background-size: 100% 100%, 20px 20px;
+        background-color: #f4f6f9;
+        /* This creates a distinct "Architectural Grid" pattern */
+        background-image: radial-gradient(#179758 0.8px, transparent 0.8px), radial-gradient(#179758 0.8px, #f4f6f9 0.8px);
+        background-size: 25px 25px;
+        background-position: 0 0, 12.5px 12.5px;
+        opacity: 1;
     }
     
-    /* --- CARDS & CONTAINERS --- */
+    /* --- 2. THE "MEDALLION" LOGO (Replaces the Cartoon Taxi) --- */
+    .medallion {
+        background-color: #2c3e50;
+        color: #f1c40f; /* Taxi Yellow */
+        width: 80px;
+        height: 80px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Helvetica Neue', sans-serif;
+        font-weight: 900;
+        font-size: 24px;
+        line-height: 1;
+        text-align: center;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        border: 2px solid #f1c40f;
+    }
+    
+    /* --- 3. CARDS & SHAPES --- */
     div.css-1r6slb0, div.css-12oz5g7 {
-        background-color: rgba(255, 255, 255, 0.95); /* Slightly transparent white */
-        border-radius: 15px; /* Softer corners */
+        background-color: #ffffff;
+        border-radius: 12px;
         padding: 25px;
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08); /* Deeper, softer shadow for 'pop' */
-        border: 1px solid #edf2f7;
+        /* Stronger shadow for "floating" effect against the texture */
+        box-shadow: 0 10px 25px rgba(0,0,0,0.08); 
+        border: 1px solid #e1e4e8;
     }
     
-    /* Typography */
-    h1, h2, h3 { font-family: 'Helvetica Neue', sans-serif; color: #2c3e50; letter-spacing: -0.5px;}
-    
-    /* --- CUSTOM PRICE CARD --- */
+    /* Headers */
+    h1 { letter-spacing: -1px; color: #1a252f; }
+    h3 { font-size: 16px; text-transform: uppercase; color: #7f8c8d; letter-spacing: 1px; }
+
+    /* Price Card (The "Hero" Component) */
     .price-card {
-        background: linear-gradient(to right, #ffffff, #f8fdfa);
+        background: linear-gradient(135deg, #ffffff 0%, #f0fff4 100%);
         border-left: 6px solid #179758;
         padding: 25px;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(23, 151, 88, 0.15); /* Subtle green glow */
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(23, 151, 88, 0.1);
     }
     .price-main {
         font-size: 48px;
@@ -58,48 +80,51 @@ st.markdown("""
         line-height: 1.1;
     }
     .price-sub {
-        font-size: 14px;
+        font-size: 13px;
         text-transform: uppercase;
-        letter-spacing: 1.2px;
-        color: #179758;
+        letter-spacing: 1.5px;
+        color: #2c3e50;
         font-weight: 700;
-        opacity: 0.8;
     }
-    
-    /* Header graphic styling */
-    .header- icon { font-size: 60px; line-height: 0.8; }
     
     /* Disclaimer */
     .disclaimer {
-        font-size: 12px;
-        color: #888;
+        font-size: 11px;
+        color: #95a5a6;
         margin-top: 50px;
         text-align: center;
-        border-top: 1px solid #ddd;
+        border-top: 1px solid #dcdcdc;
         padding-top: 20px;
+        background-color: rgba(255,255,255,0.6); /* Readable against texture */
+        padding-bottom: 20px;
+        border-radius: 8px;
     }
     </style>
     """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 🚕 GRAPHICAL HEADER
+# 🚕 HEADER SECTION
 # ---------------------------------------------------------
-# Using columns to create a visual banner
 h_col1, h_col2 = st.columns([1, 5])
-with h_col1:
-    # A large, prominent taxi emoji acts as the logo
-    st.markdown('<div style="font-size: 70px; text-align: center;">🚕</div>', unsafe_allow_html=True)
-with h_col2:
-    st.title("NYC Fair Price Auditor")
-    st.markdown("#### 🛡️ AI-Powered Fare Protection Engine")
 
-st.markdown("Don't overpay. This agent analyses **2.7 million historical trips** to calculate a fair price range for your journey.")
+with h_col1:
+    # THE DIGITAL MEDALLION (No more cartoons)
+    st.markdown("""
+        <div class="medallion">
+            NYC<br>TLC
+        </div>
+    """, unsafe_allow_html=True)
+
+with h_col2:
+    st.title("Fair Price Auditor")
+    st.markdown("**AI-Powered Protection Engine**")
+
 st.divider()
 
 # ---------------------------------------------------------
 # 🎛️ INPUTS
 # ---------------------------------------------------------
-st.subheader("📍 1. Journey Details")
+st.markdown("### 1. Journey Context")
 col1, col2 = st.columns(2)
 
 with col1:
@@ -136,7 +161,7 @@ high_range = price * 1.15
 # 🏁 AUDIT REPORT
 # ---------------------------------------------------------
 st.divider()
-st.subheader("🤖 2. Audit Result")
+st.markdown("### 2. Audit Result")
 
 c1, c2 = st.columns([1.3, 1])
 
@@ -145,7 +170,7 @@ with c1:
     <div class="price-card">
         <div class="price-sub">Fair Price Range</div>
         <div class="price-main">${low_range:.2f} - ${high_range:.2f}</div>
-        <div style="color: #666; font-size: 14px; margin-top: 8px; font-weight: 500;">
+        <div style="color: #555; font-size: 14px; margin-top: 8px; font-weight: 500;">
             Target Estimate: <b>${price:.2f}</b>
         </div>
     </div>
@@ -154,19 +179,19 @@ with c1:
 with c2:
     # --- INTELLIGENT ADVICE LOGIC ---
     if distance < 1.5:
-        msg = "🚶 **Walkable Distance:** For trips under 1.5 miles, walking or cycling is often faster than sitting in NYC traffic."
+        msg = "🚶 **Walkable:** For trips under 1.5 miles, walking/cycling is often faster than NYC traffic."
         icon = "info"
     elif distance > 20:
-        msg = "✈️ **Long Haul:** For airport trips (JFK/EWR), check if a flat-rate 'Airport Fare' applies before accepting the meter."
+        msg = "✈️ **Long Haul:** For airports (JFK/EWR), check for flat-rate 'Airport Fares' before accepting the meter."
         icon = "warning"
     elif 16 <= hour <= 19 and not is_weekend:
-        msg = "🚦 **Rush Hour:** Heavy congestion detected (4PM-7PM). Expect the higher end of the price range."
+        msg = "🚦 **Rush Hour:** Heavy congestion (4PM-7PM). Expect the higher end of the price range."
         icon = "warning"
     elif 0 <= hour <= 4:
-        msg = "🌙 **Night Owl:** Low traffic expected, but driver availability may be lower. Price surcharges are minimal."
+        msg = "🌙 **Night Owl:** Low traffic, minimal surcharges. Driver availability may vary."
         icon = "success"
     else:
-        msg = "✅ **Standard Rate:** Current conditions align with standard market averages. Proceed with confidence."
+        msg = "✅ **Standard Rate:** Conditions align with market averages. Proceed with confidence."
         icon = "success"
 
     if icon == "warning":
@@ -180,7 +205,7 @@ with c2:
 # 📊 TRANSPARENCY
 # ---------------------------------------------------------
 st.divider()
-st.subheader("📊 3. Cost Transparency")
+st.markdown("### 3. Cost Transparency")
 
 tab1, tab2 = st.tabs(["💵 Cost Breakdown", "📈 Market Trends"])
 
