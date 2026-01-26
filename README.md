@@ -63,27 +63,6 @@ The project is organised into a modular pipeline, with each notebook representin
 
 ---
 
-## 📅 Progress Log
-* **Phase 1: Infrastructure Setup** (Completed Jan 25)
-    * Provisioned Azure Resource Group and Storage Account.
-    * Deployed Azure Databricks Workspace (Standard Tier).
-    * Configured Spark Cluster (Single Node) for cost optimisation.
-    * Established secure connection between Databricks and Blob Storage via WASBS protocol.
-
-* **Phase 2: Ingestion / Bronze Layer** (Completed Jan 26)
-    * **Ingestion:** Programmatically downloaded NYC TLC Yellow Taxi data (Jan 2024).
-    * **Storage:** Successfully moved raw Parquet files into the Azure Data Lake ('raw' container).
- 
-* **Phase 3: Transformation / Silver Layer** (Completed Jan 26)
-    * **Cleaning:** Implemented PySpark logic to filter invalid records (negative fares, zero passengers).
-    * **Schema:** Standardised column names for downsteam usability.
-    * **Delta Lake:** Materialised the clean data as a **Delta Table** to enforce ACID compliance.
- 
-* **Phase 4: Business Aggregation / Gold Layer** (Completed Jan 26)
-    * **Analytics:** Calculated daily business KPIs (Total Revenue, Total Trips, Avg Trip Distance).
-    * **Reporting:** Saved aggregated "Gold" tables ready for Dashboard consumption
----
-
 ## 🏗️ ELT Pipeline Execution
 The pipeline follows the **Medallion Architecture** (Bronze → Silver → Gold) to ensure data quality and traceability.
 
@@ -131,6 +110,52 @@ The pipeline follows the **Medallion Architecture** (Bronze → Silver → Gold)
 
 *Figure 3: Validated Daily Revenue Report (Gold Layer)*
 
+
+
+### 🤖 Phase 5: Predictive Modeling (The "AI" Layer)
+**Goal:** Operationalise the Silver data by training a Machine Learning model to predict taxi fares. This serves as the "Inference Engine" for a future Taxi Booking Agent.
+
+* **Model:** Linear Regression (PySpark MLlib).
+* **Target:** `total_cost` (Predicting the final fare).
+* **Features Engineering:**
+    * `trip_distance`: The primary driver of cost.
+    * `pickup_hour`: Extracted to capture traffic patterns (Rush Hour vs. Night).
+    * `day_of_week`: Extracted to capture weekend surcharges.
+* **Performance:** Achieved an **RMSE of ~$7.88**, establishing a baseline predictive capability on 2.7M records.
+
+**Code Snippet (Training):**
+```python
+# The "Brain" of the AI
+lr = LinearRegression(labelCol="total_cost", featuresCol="features")
+model = pipeline.fit(train_data)
+```
+
+<img width="907" height="496" alt="Screenshot 2026-01-26 at 7 15 24 pm" src="https://github.com/user-attachments/assets/0260da96-7643-4445-9d3c-8934a606c3cd" />
+**Figure 4: Final Data Profile (Clean)**
+
+
+
+### 🚕 Phase 6: AI Agent (Model Serving & UI)
+**Goal:** Deploy the trained linear regression model as an interactive "AI Agent" for real-time fare estimation.
+
+* **Problem:** Spark ML pipelines are powerful for training but too heavy (slow latency) for a user-facing mobile app or website.
+* **Solution:** "extract the brain" of the model. I retrieved the **Intercept** and **Coefficients** (Weights) from the trained Spark model and wrapped them in a lightweight Python class.
+* **Deployment:** Built a **Streamlit Web App** that serves the model, allowing users to input trip details and get instant fare predictions without spinning up a cluster.
+
+**Code Snippet (The Inference Engine):**
+```python
+def predict_fare(distance, hour, is_weekend):
+    # Pure Python Math (No Spark dependency required) = Millisecond Latency ⚡
+    price = (INTERCEPT + 
+             (distance * COEF_DISTANCE) + 
+             (hour * COEF_HOUR) + 
+             (is_weekend * COEF_WEEKEND))
+    return max(5.0, price)
+```
+
+<img width="594" height="254" alt="Screenshot 2026-01-26 at 7 00 32 pm" src="https://github.com/user-attachments/assets/ebab47d1-e435-4afc-8fac-2631cb2c0468" />
+**Figure 5: Agent Logic & Real-Time Inference Test**
+
 ---
 
 ## 🛑 Data Quality Challenges & Solutions
@@ -146,10 +171,10 @@ During the profiling of the Silver Layer, I discovered two critical data integri
 * **Fix:** Implemented physics-based thresholds (`0 < distance < 500`).
 * **Impact:** Eliminated ~33,000 outlier records that would have skewed "Average Distance" metrics.
 
-**Figure 4: Final Data Profile (Clean)**
 *Verified statistics showing valid ranges (Min Distance: 0.01 miles, Max Distance: 277 miles).*
 
 <img width="909" height="287" alt="Screenshot 2026-01-26 at 5 04 40 pm" src="https://github.com/user-attachments/assets/f1019345-4ec6-4f28-8cea-a8172d9daeed" />
+**Figure 4: Final Data Profile (Clean)**
 
 ---
 
@@ -165,24 +190,5 @@ To extend this project from a proof-of-concept to a production-grade enterprise 
 * **Data Governance (Unity Catalog):**
     * *Why:* To manage access control (e.g., masking PII for sensitive users) and track data lineage, ensuring compliance with data privacy regulations.
 
----
-
-### 🤖 Phase 5: Predictive Modeling (The "AI" Layer)
-**Goal:** Operationalise the Silver data by training a Machine Learning model to predict taxi fares. This serves as the "Inference Engine" for a future Taxi Booking Agent.
-
-* **Model:** Linear Regression (PySpark MLlib).
-* **Features:**
-    * `trip_distance`: The primary driver of cost.
-    * `pickup_hour`: Captures traffic patterns (Rush Hour vs. Night).
-    * `day_of_week`: Captures weekend surcharges.
-* **Performance:** Achieved an **RMSE of ~$5.50**, proving that the cleaned Silver data has high predictive power.
-
-**Code Snippet (Training):**
-```python
-# The "Brain" of the AI
-lr = LinearRegression(labelCol="total_cost", featuresCol="features")
-model = pipeline.fit(train_data)
-```
----
 
 
