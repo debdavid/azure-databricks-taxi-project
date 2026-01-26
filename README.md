@@ -33,7 +33,7 @@ The project is organised into a modular pipeline, with each notebook representin
     * Configured Spark Cluster (Single Node) for cost optimisation.
     * Established secure connection between Databricks and Blob Storage via WASBS protocol.
 
-* **Phase 2: Ingestion / Brinze Layer** (Completed Jan 26)
+* **Phase 2: Ingestion / Bronze Layer** (Completed Jan 26)
     * **Ingestion:** Programmatically downloaded NYC TLC Yellow Taxi data (Jan 2024).
     * **Storage:** Successfully moved raw Parquet files into the Azure Data Lake ('raw' container).
  
@@ -92,3 +92,23 @@ The pipeline follows the **Medallion Architecture** (Bronze → Silver → Gold)
 <img width="910" height="432" alt="Screenshot 2026-01-26 at 3 49 19 pm" src="https://github.com/user-attachments/assets/2d7cd9eb-68ff-4cc2-853f-66faa242b227" />
 
 *Figure 3: Validated Daily Revenue Report (Gold Layer)*
+
+---
+
+## 🛑 Data Quality Challenges & Solutions
+During the profiling of the Silver Layer, I discovered two critical data integrity issues that required immediate logic updates.
+
+### 1. Temporal Inconsistency ("Time Travel")
+* **Issue:** Records appeared with timestamps from **2002**, likely due to misconfigured taxi meters.
+* **Fix:** Implemented a strict filter `year(col("pickup_time")) == 2024`.
+* **Impact:** Removed ~150 invalid records to ensure report timeline accuracy.
+
+### 2. Physical Impossibilities (GPS Errors)
+* **Issue:** Statistical profiling revealed trips with **0.0 miles** (stationary charges) and **15,400 miles** (GPS sensor glitches).
+* **Fix:** Implemented physics-based thresholds (`0 < distance < 500`).
+* **Impact:** Eliminated ~33,000 outlier records that would have skewed "Average Distance" metrics.
+
+**Figure 4: Final Data Profile (Clean)**
+*Verified statistics showing valid ranges (Min Distance: 0.01 miles, Max Distance: 277 miles).*
+
+<img width="909" height="287" alt="Screenshot 2026-01-26 at 5 04 40 pm" src="https://github.com/user-attachments/assets/f1019345-4ec6-4f28-8cea-a8172d9daeed" />
