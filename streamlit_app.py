@@ -50,7 +50,7 @@ with col1:
     distance = st.slider("📏 Trip Distance (Miles)", 0.5, 50.0, 5.0, step=0.5)
     
     # PASSENGERS: Clean number input
-    passengers = st.number_input("busts_in_silhouette Passengers", 1, 6, 1)
+    passengers = st.number_input("Passengers", 1, 6, 1)
 
 with col2:
     # TIME: Converted to AM/PM for "Adult" readability
