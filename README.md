@@ -1,7 +1,53 @@
 # 🚖 NYC Taxi Data Lakehouse (Azure + Databricks)
+**End-to-End ELT Pipeline processing 3 million+ records using Medallion Architecture.**
 
 ## 🎯 Project Goal
-Building an end-to-end Data Engineering pipeline to analyse NYC Taxi data. The goal is to move from raw CSV data to actionable insights using the "Medallion Architecture" (Bronze/Silver/Gold).
+To engineer a scalable **Lakehouse Architecture** on Microsoft Azure that transforms raw, high-volume transactional data (NYC Taxi trips) into trusted business insights. This project demonstrates the transition from **Bronze (Raw)** to **Silver (Clean)** to **Gold (Business-Ready)** layers, enforcing strict data quality contracts and delivering a production-grade analytics pipeline.
+
+---
+
+## 🏗️ Architecture Overview
+This project implements a modern Lakehouse architecture on Microsoft Azure. It ingests raw taxi trip data, cleanses it using PySpark, and aggregates it into business-ready Gold tables for reporting.
+
+```mermaid
+flowchart TD
+    subgraph Azure_Cloud ["Azure Cloud Infrastructure"]
+        style Azure_Cloud fill:#f9f9f9,stroke:#333,stroke-width:2px
+        
+        TR["NYC Taxi Data Source"] -->|Ingest| Raw[Blob Storage: Raw]
+        
+        subgraph Databricks ["Azure Databricks (Medallion Arch)"]
+            style Databricks fill:#ffecd1,stroke:#ff9900,stroke-width:2px
+            
+            Raw -->|PySpark Ingestion| Bronze[(Bronze Layer)]
+            Bronze -->|Cleaning & Quality Checks| Silver[(Silver Layer)]
+            Silver -->|Aggregation & Logic| Gold[(Gold Layer)]
+        end
+        
+        Gold -->|Reporting| BI["Business Insights"]
+    end
+    
+    classDef storage fill:#dbeaff,stroke:#007bff;
+    class Raw,Bronze,Silver,Gold storage;
+```
+
+---
+
+## 📊 Executive Summary (Key Business Insights)
+Based on the Gold Layer analysis, we observed the following trends:
+* **Revenue Stability:** The fleet generates approximately **$2.1M - $2.2M per day** in gross revenue.
+* **Trip Efficiency:** The average trip distance is **~3.2 miles**, indicating the fleet is primarily used for short, inner-city transit rather than long-haul airport runs.
+* **Data Volume:** Successfully processed **~2.7 million** valid trips for January 2024 after removing ~7% of noise/ corruption.
+
+---
+
+## 🏗️ Tech Stack
+* **Cloud:** Microsoft Azure (Resource Groups, Blob Storage)
+* **Compute:** Azure Databricks (Spark 3.5, Scala 2.12)
+* **Storage:** Azure Data Lake Gen2 (WASBS Protocol)
+* **Orchestration:** Azure Data Factory (Planned)
+* **Language:** Python (PySpark)
+* **Format:** Delta Lake (ACID Transactions)
 
 ---
 
@@ -14,15 +60,6 @@ The project is organised into a modular pipeline, with each notebook representin
      * '3_Transform_Silver.py': Quality enforcement pipeline; filters invalid data and write to Delat Lake.
      * '4_Analysis_Gold.py': Business aggregation logic for daily revenue reporting.
 * **'README.md'**: Project documentation, architecture diagrams, and execution evidence.
-
----
-
-## 🏗️ Tech Stack
-* **Cloud:** Microsoft Azure
-* **Compute:** Azure Databricks (Spark 3.5, Scala 2.12)
-* **Storage:** Azure Data Lake Gen2 (Standard Blob WASBS)
-* **Orchestration:** Azure Data Factory (Planned)
-* **Language:** Python (PySpark)
 
 ---
 
@@ -47,10 +84,10 @@ The project is organised into a modular pipeline, with each notebook representin
     * **Reporting:** Saved aggregated "Gold" tables ready for Dashboard consumption
 ---
 
-## 🏗️ ELT Pipeline Architecture
+## 🏗️ ELT Pipeline Execution
 The pipeline follows the **Medallion Architecture** (Bronze → Silver → Gold) to ensure data quality and traceability.
 
-### 🥉 Phase 1: Bronze Layer (Ingestion)
+### 🥉 Phase 1 & 2: Bronze Layer (Ingestion)
 **Goal:** Ingest raw historical data from external public sources into the internal Data Lake without modification.
 * **Source:** NYC Taxi & Limousine Commission (TLC) Trip Record Data.
 * **Method:** Programmatic extraction using Python (`requests`) to fetch monthly Parquet archives.
@@ -64,7 +101,7 @@ The pipeline follows the **Medallion Architecture** (Bronze → Silver → Gold)
 
 
 
-### 🥈 Phase 2: Silver Layer (Transformation & Cleaning)
+### 🥈 Phase 3: Silver Layer (Transformation & Cleaning)
 **Goal:** Cleanse and validate data to ensure it is trusted for downstream analysis.
 * **Schema Enforcement:** Renamed columns from legacy formats (e.g., `tpep_pickup_datetime`) to business-standard naming conventions.
 * **Data Quality Filters:**
@@ -113,3 +150,18 @@ During the profiling of the Silver Layer, I discovered two critical data integri
 *Verified statistics showing valid ranges (Min Distance: 0.01 miles, Max Distance: 277 miles).*
 
 <img width="909" height="287" alt="Screenshot 2026-01-26 at 5 04 40 pm" src="https://github.com/user-attachments/assets/f1019345-4ec6-4f28-8cea-a8172d9daeed" />
+
+---
+
+## 🚀 Future Roadmap
+To extend this project from a proof-of-concept to a production-grade enterprise solution, I would implement the following:
+
+* **Orchestration (Azure Data Factory):**
+    * *Why:* Currently, notebooks are run manually. ADF would automate this to run on a daily schedule (e.g., 2 AM), ensuring stakeholders always have fresh data without manual intervention.
+* **Visualisation (Power BI):**
+    * *Why:* The Gold Layer is currently just a table. Connecting Power BI would unlock interactive dashboards, allowing business users to self-serve insights on revenue trends and fleet efficiency.
+* **CI/CD (GitHub Actions):**
+    * *Why:* To prevent bugs from reaching production. This would automatically run unit tests on PySpark logic whenever new code is pushed, ensuring reliability before deployment.
+* **Data Governance (Unity Catalog):**
+    * *Why:* To manage access control (e.g., masking PII for sensitive users) and track data lineage, ensuring compliance with data privacy regulations.
+  
