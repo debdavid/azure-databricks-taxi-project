@@ -4,7 +4,7 @@ from pyspark.sql.functions import col, current_timestamp
 storage_account_name = "stresumeprojectdd"
 container_name = "nyctaxi"
 # ⚠️ PASTE YOUR KEY BELOW
-access_key = "PASTE_ACCESS_KEY"
+access_key = "PASTE_YOUR_ACCESS_KEY_HERE"
 
 # 1. Authenticate
 spark.conf.set(
