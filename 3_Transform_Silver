@@ -1,10 +1,10 @@
-from pyspark.sql.functions import col, current_timestamp
+from pyspark.sql.functions import col, current_timestamp, year
 
 # --- CONFIGURATION ---
 storage_account_name = "stresumeprojectdd"
 container_name = "nyctaxi"
 # ⚠️ PASTE YOUR KEY BELOW
-access_key = "PASTE_YOUR_ACCESS_KEY_HERE"
+access_key = "PASTER_YOUR_ACCESS_KEY_HERE"
 
 # 1. Authenticate
 spark.conf.set(
@@ -31,11 +31,14 @@ df_silver = (df_raw
     .withColumnRenamed("passenger_count", "passengers")
     .withColumnRenamed("total_amount", "total_cost")
     
-    # Filter out garbage data (Negative costs or 0 passengers)
+    # Filter 1: Remove financial garbage (Negative costs or 0 passengers)
     .filter(col("total_cost") > 0)
     .filter(col("passengers") > 0)
+
+    # Filter 2: Remove Time Travel data (The Fix!) 🕒
+    .filter(year(col("pickup_time")) == 2024)
     
-    # Add a timestamp so we know when we processed this
+    # Add a timestamp so we know when we processed this (ingestion date)
     .withColumn("ingestion_date", current_timestamp())
 )
 
