@@ -21,50 +21,50 @@ st.set_page_config(page_title="NYC Pricing Agent", page_icon="🚖", layout="cen
 
 st.markdown("""
     <style>
-    /* --- 1. VISIBLE GEOMETRIC TEXTURE BACKGROUND --- */
+    /* --- 1. "CITY BLOCK" MAP BACKGROUND --- */
     .stApp {
-        background-color: #f4f6f9;
-        /* This creates a distinct "Architectural Grid" pattern */
-        background-image: radial-gradient(#179758 0.8px, transparent 0.8px), radial-gradient(#179758 0.8px, #f4f6f9 0.8px);
-        background-size: 25px 25px;
-        background-position: 0 0, 12.5px 12.5px;
+        background-color: #f0f2f6;
         opacity: 1;
+        /* This CSS pattern mimics a large city grid (Streets & Avenues) */
+        background-image:  linear-gradient(#dbe1e8 2px, transparent 2px), linear-gradient(90deg, #dbe1e8 2px, transparent 2px), linear-gradient(#dbe1e8 1px, transparent 1px), linear-gradient(90deg, #dbe1e8 1px, transparent 1px);
+        background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+        background-position: -2px -2px, -2px -2px, -1px -1px, -1px -1px;
     }
     
-    /* --- 2. THE "MEDALLION" LOGO (Replaces the Cartoon Taxi) --- */
+    /* --- 2. THE MEDALLION LOGO --- */
     .medallion {
-        background-color: #2c3e50;
-        color: #f1c40f; /* Taxi Yellow */
-        width: 80px;
-        height: 80px;
-        border-radius: 12px;
+        background-color: #f1c40f; /* Taxi Yellow */
+        color: #000000;
+        width: 90px;
+        height: 90px;
+        border-radius: 18px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-family: 'Helvetica Neue', sans-serif;
-        font-weight: 900;
-        font-size: 24px;
-        line-height: 1;
+        font-weight: 800;
+        font-size: 26px;
+        line-height: 1.1;
         text-align: center;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        border: 2px solid #f1c40f;
+        box-shadow: 0 6px 0px #c29d0b;
+        border: 3px solid #000000;
+        margin: auto;
     }
     
-    /* --- 3. CARDS & SHAPES --- */
+    /* --- 3. CARDS & CONTAINERS --- */
     div.css-1r6slb0, div.css-12oz5g7 {
         background-color: #ffffff;
         border-radius: 12px;
         padding: 25px;
-        /* Stronger shadow for "floating" effect against the texture */
         box-shadow: 0 10px 25px rgba(0,0,0,0.08); 
         border: 1px solid #e1e4e8;
     }
     
-    /* Headers */
-    h1 { letter-spacing: -1px; color: #1a252f; }
-    h3 { font-size: 16px; text-transform: uppercase; color: #7f8c8d; letter-spacing: 1px; }
+    /* Typography */
+    h1 { letter-spacing: -1px; color: #1a252f; font-weight: 700;}
+    h3 { font-size: 14px; text-transform: uppercase; color: #7f8c8d; letter-spacing: 1.5px; font-weight: 700; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
 
-    /* Price Card (The "Hero" Component) */
+    /* Price Card */
     .price-card {
         background: linear-gradient(135deg, #ffffff 0%, #f0fff4 100%);
         border-left: 6px solid #179758;
@@ -93,11 +93,10 @@ st.markdown("""
         color: #95a5a6;
         margin-top: 50px;
         text-align: center;
-        border-top: 1px solid #dcdcdc;
-        padding-top: 20px;
-        background-color: rgba(255,255,255,0.6); /* Readable against texture */
-        padding-bottom: 20px;
+        background-color: rgba(255,255,255,0.8);
+        padding: 20px;
         border-radius: 8px;
+        border: 1px solid #ddd;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -105,26 +104,26 @@ st.markdown("""
 # ---------------------------------------------------------
 # 🚕 HEADER SECTION
 # ---------------------------------------------------------
-h_col1, h_col2 = st.columns([1, 5])
+h_col1, h_col2 = st.columns([1, 4])
 
 with h_col1:
-    # THE DIGITAL MEDALLION (No more cartoons)
     st.markdown("""
         <div class="medallion">
-            NYC<br>TLC
+            NYC<br>TAXI
         </div>
     """, unsafe_allow_html=True)
 
 with h_col2:
-    st.title("Fair Price Auditor")
-    st.markdown("**AI-Powered Protection Engine**")
+    st.title("NYC Price Check")
+    st.markdown("**AI-Powered Fair Fare Estimator**")
+    st.caption("Compare your potential trip cost against historical market data.")
 
 st.divider()
 
 # ---------------------------------------------------------
 # 🎛️ INPUTS
 # ---------------------------------------------------------
-st.markdown("### 1. Journey Context")
+st.markdown("### 1. Trip Details")
 col1, col2 = st.columns(2)
 
 with col1:
@@ -158,20 +157,20 @@ low_range = price * 0.95
 high_range = price * 1.15 
 
 # ---------------------------------------------------------
-# 🏁 AUDIT REPORT
+# 🏁 ASSESSMENT REPORT
 # ---------------------------------------------------------
 st.divider()
-st.markdown("### 2. Audit Result")
+st.markdown("### 2. Price Check Result")
 
 c1, c2 = st.columns([1.3, 1])
 
 with c1:
     st.markdown(f"""
     <div class="price-card">
-        <div class="price-sub">Fair Price Range</div>
+        <div class="price-sub">Typical Market Range</div>
         <div class="price-main">${low_range:.2f} - ${high_range:.2f}</div>
         <div style="color: #555; font-size: 14px; margin-top: 8px; font-weight: 500;">
-            Target Estimate: <b>${price:.2f}</b>
+            Estimated Fair Price: <b>${price:.2f}</b>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -185,7 +184,7 @@ with c2:
         msg = "✈️ **Long Haul:** For airports (JFK/EWR), check for flat-rate 'Airport Fares' before accepting the meter."
         icon = "warning"
     elif 16 <= hour <= 19 and not is_weekend:
-        msg = "🚦 **Rush Hour:** Heavy congestion (4PM-7PM). Expect the higher end of the price range."
+        msg = "🚦 **Rush Hour:** Heavy congestion (4PM-7PM). Expect the higher end of the typical range."
         icon = "warning"
     elif 0 <= hour <= 4:
         msg = "🌙 **Night Owl:** Low traffic, minimal surcharges. Driver availability may vary."
@@ -205,9 +204,9 @@ with c2:
 # 📊 TRANSPARENCY
 # ---------------------------------------------------------
 st.divider()
-st.markdown("### 3. Cost Transparency")
+st.markdown("### 3. Cost Breakdown")
 
-tab1, tab2 = st.tabs(["💵 Cost Breakdown", "📈 Market Trends"])
+tab1, tab2 = st.tabs(["💵 Cost Structure", "📈 Hourly Trends"])
 
 with tab1:
     breakdown_data = pd.DataFrame({
