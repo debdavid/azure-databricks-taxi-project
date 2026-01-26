@@ -131,7 +131,7 @@ model = pipeline.fit(train_data)
 ```
 
 <img width="907" height="496" alt="Screenshot 2026-01-26 at 7 15 24 pm" src="https://github.com/user-attachments/assets/0260da96-7643-4445-9d3c-8934a606c3cd" />
-**Figure 4: Final Data Profile (Clean)**
+*Figure 4: Final Data Profile (Clean)*
 
 
 
@@ -154,7 +154,7 @@ def predict_fare(distance, hour, is_weekend):
 ```
 
 <img width="594" height="254" alt="Screenshot 2026-01-26 at 7 00 32 pm" src="https://github.com/user-attachments/assets/ebab47d1-e435-4afc-8fac-2631cb2c0468" />
-**Figure 5: Agent Logic & Real-Time Inference Test**
+*Figure 5: Agent Logic & Real-Time Inference Test*
 
 ---
 
@@ -174,7 +174,12 @@ During the profiling of the Silver Layer, I discovered two critical data integri
 *Verified statistics showing valid ranges (Min Distance: 0.01 miles, Max Distance: 277 miles).*
 
 <img width="909" height="287" alt="Screenshot 2026-01-26 at 5 04 40 pm" src="https://github.com/user-attachments/assets/f1019345-4ec6-4f28-8cea-a8172d9daeed" />
-**Figure 4: Final Data Profile (Clean)**
+*Figure 6: Final Data Profile (Clean)*
+
+### 3. Price Anomalies (Detected via ML)
+* **Issue:** During Model Error Analysis, I observed trips with a `total_cost` of **$1.00**, which is below the regulated NYC base fare.
+* **Insight:** The ML model predicted ~$13.00 for these trips based on distance, correctly flagging the $1.00 records as likely administrative voids or meter errors.
+* **Future Fix:** In a production V2, I would implement a `total_cost >= 3.0` filter to remove these financial outliers.
 
 ---
 
