@@ -89,7 +89,8 @@ The pipeline follows the **Medallion Architecture** (Bronze → Silver → Gold)
 
 **Final Output:**
 *Daily Revenue Analysis (Cleaned & Validated).*
-<img width="910" height="432" alt="Screenshot 2026-01-26 at 3 49 19 pm" src="https://github.com/user-attachments/assets/2d7cd9eb-68ff-4cc2-853f-66faa242b227" />
+<img width="909" height="266" alt="Screenshot 2026-01-26 at 5 23 06 pm" src="https://github.com/user-attachments/assets/fd987ee9-5870-4955-9f0b-d8a583cdd6f4" />
+
 
 *Figure 3: Validated Daily Revenue Report (Gold Layer)*
 
