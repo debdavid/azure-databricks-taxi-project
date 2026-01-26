@@ -1,10 +1,10 @@
 import streamlit as st
 import pandas as pd
 import altair as alt
-import time # Imported to simulate AI "thinking" time
+import time 
 
 # ---------------------------------------------------------
-# 🧠 AGENT BRAIN (Model Weights)
+# 🧠 AGENT BRAIN
 # ---------------------------------------------------------
 INTERCEPT = 10.3838
 COEF_DISTANCE = 4.6309
@@ -22,7 +22,7 @@ st.set_page_config(page_title="NYC Pricing Agent", page_icon="🚖", layout="cen
 
 st.markdown("""
     <style>
-    /* Executive Green Background */
+    /* Background */
     .stApp {
         background: linear-gradient(135deg, #f5f7fa 0%, #e4f0e8 100%);
     }
@@ -77,6 +77,42 @@ st.markdown("""
         letter-spacing: 1.5px;
         color: #2c3e50;
         font-weight: 700;
+    }
+
+    /* --- CHAT INTERFACE STYLING --- */
+    .chat-header {
+        background-color: #1a252f;
+        color: white;
+        padding: 15px;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 30px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .chat-status {
+        font-size: 12px;
+        color: #2ecc71; /* Green */
+        text-transform: uppercase;
+        font-weight: bold;
+        letter-spacing: 1px;
+    }
+    .pulsing-dot {
+        height: 10px;
+        width: 10px;
+        background-color: #2ecc71;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+        box-shadow: 0 0 0 rgba(46, 204, 113, 0.4);
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
     }
     </style>
     """, unsafe_allow_html=True)
@@ -155,51 +191,54 @@ with c2:
         st.success("✅ **Standard Rate:** Conditions are normal.")
 
 # ---------------------------------------------------------
-# 💬 FAKE GEN-AI AGENT (The "Wizard of Oz")
+# 💬 AGENT CHAT (The "Wizard of Oz" Logic)
 # ---------------------------------------------------------
-st.divider()
-st.markdown("### 3. Agent Consultant")
-st.caption("Ask the agent about your trip (e.g., 'Is this expensive?', 'How do I save money?', 'JFK trip')")
+# Custom Header for Chat
+st.markdown("""
+<div class="chat-header">
+    <div style="font-weight: bold; font-size: 18px;">🤖 Live Agent Consultant</div>
+    <div class="chat-status"><span class="pulsing-dot"></span>ONLINE</div>
+</div>
+""", unsafe_allow_html=True)
 
-# Initialize chat history
+# Initialize Chat & Add Welcome Message if empty
 if "messages" not in st.session_state:
     st.session_state.messages = []
+    # Auto-Greeting (Triggers engagement)
+    welcome_msg = "Hello! I am analyzing the market data for your trip. Ask me about **traffic**, **airport rates**, or how to **save money**."
+    st.session_state.messages.append({"role": "assistant", "content": welcome_msg})
 
-# Display chat messages from history on app rerun
+# Display History
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# React to user input
-if prompt := st.chat_input("Ask about your fare..."):
-    # 1. Display user message
+# Handle Input
+if prompt := st.chat_input("Ask about your trip (e.g. 'Is this expensive?')..."):
+    
     st.chat_message("user").markdown(prompt)
     st.session_state.messages.append({"role": "user", "content": prompt})
 
-    # 2. Simulate "AI Thinking" time
-    with st.spinner("Agent is analyzing market data..."):
-        time.sleep(1.2) # Fake latency to feel real
+    with st.spinner("Consulting knowledge base..."):
+        time.sleep(1.2) # Fake "Thinking" Latency
 
-    # 3. "Fake" Logic Router (Rule-Based)
+    # FAKE AI LOGIC ROUTER
     prompt_lower = prompt.lower()
     
-    # RESPONSE LOGIC
     if "save" in prompt_lower or "cheaper" in prompt_lower:
-        response = f"To save money on this {distance} mile trip, try travelling outside of rush hour (4PM-7PM). Currently, the base estimate is **${price:.2f}**."
+        response = f"To save on this **{distance} mile** trip, consider travelling outside of rush hour (4PM-7PM) or using the subway for part of the journey. The current fair price is around **${price:.2f}**."
     elif "traffic" in prompt_lower or "rush" in prompt_lower:
         if 16 <= hour <= 19:
-            response = "Yes, you are currently in the **Rush Hour window (4PM - 7PM)**. My model adds a premium for time-based delays."
+            response = "⚠️ **Heavy Traffic Alert:** You are selecting a pickup during **Rush Hour (4PM - 7PM)**. My model includes a time-penalty, but real-world delays could increase the meter further."
         else:
-            response = "Traffic conditions are currently standard. My data shows no heavy congestion surcharges for this time."
+            response = "Traffic is currently moderate. You are outside the peak congestion window."
     elif "airport" in prompt_lower or "jfk" in prompt_lower or "lga" in prompt_lower:
-        response = "⚠️ **Airport Alert:** If you are going to JFK, NYC taxis often have a **Flat Fare (approx $70 + tolls)**. Do not use the meter if the driver offers a flat rate!"
-    elif "accurate" in prompt_lower or "real" in prompt_lower:
-        response = "My predictions are based on **2.7 million real trip records** from Jan 2024. While highly accurate for benchmarking, live weather or accidents can affect the final meter."
+        response = "✈️ **Airport Advice:** For JFK trips, NYC taxis often use a **Flat Fare** (approx $70 + tolls). Verify this with the driver before starting the meter!"
+    elif "hello" in prompt_lower or "hi" in prompt_lower:
+        response = "Hello! I'm here to help you audit your taxi fare. What details can I clarify for you?"
     else:
-        # Generic "Fall back" that sounds smart
-        response = f"Based on a distance of **{distance} miles** at **{time_label}**, a fair price is between **${low_range:.2f}** and **${high_range:.2f}**. Always verify the meter starts at the correct base rate."
+        response = f"Based on **2.7 million historical records**, a trip of **{distance} miles** at **{time_label}** typically costs between **${low_range:.2f}** and **${high_range:.2f}**. If your quote is higher, check for surge pricing."
 
-    # 4. Display Assistant Message
     with st.chat_message("assistant"):
         st.markdown(response)
     st.session_state.messages.append({"role": "assistant", "content": response})
