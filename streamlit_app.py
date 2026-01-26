@@ -15,49 +15,59 @@ HOURLY_PRICES = [28.91, 25.88, 24.61, 26.37, 32.53, 37.89, 30.28, 26.44, 25.39, 
                  27.42, 27.66, 28.65, 30.02]
 
 # ---------------------------------------------------------
-# 🎨 UI & MODERN DESIGN
+# 🎨 UI & MODERN DESIGN CONFIGURATION
 # ---------------------------------------------------------
-st.set_page_config(page_title="NYC Pricing Agent", page_icon="🚖", layout="centered")
+st.set_page_config(page_title="NYC Pricing Agent", page_icon="🚕", layout="centered")
 
 st.markdown("""
     <style>
-    /* Modern Background */
-    .stApp { background: linear-gradient(135deg, #f5f7fa 0%, #e4f0e8 100%); }
+    /* --- PREMIUM BACKGROUND EFFECT --- */
+    /* Combines the gradient with a subtle "data grid" geometric pattern */
+    .stApp {
+        background-color: #f5f7fa;
+        background-image:  linear-gradient(135deg, rgba(245, 247, 250, 0.9) 0%, rgba(228, 240, 232, 0.9) 100%),
+                           radial-gradient(circle at 50% 50%, #e0e0e0 1px, transparent 1px);
+        background-size: 100% 100%, 20px 20px;
+    }
     
-    /* Cards */
+    /* --- CARDS & CONTAINERS --- */
     div.css-1r6slb0, div.css-12oz5g7 {
-        background-color: white;
-        border-radius: 12px;
-        padding: 20px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        border: 1px solid #e0e0e0;
+        background-color: rgba(255, 255, 255, 0.95); /* Slightly transparent white */
+        border-radius: 15px; /* Softer corners */
+        padding: 25px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08); /* Deeper, softer shadow for 'pop' */
+        border: 1px solid #edf2f7;
     }
     
     /* Typography */
-    h1, h2, h3 { font-family: 'Helvetica Neue', sans-serif; color: #2c3e50; }
+    h1, h2, h3 { font-family: 'Helvetica Neue', sans-serif; color: #2c3e50; letter-spacing: -0.5px;}
     
-    /* Price Card */
+    /* --- CUSTOM PRICE CARD --- */
     .price-card {
-        background-color: #ffffff;
+        background: linear-gradient(to right, #ffffff, #f8fdfa);
         border-left: 6px solid #179758;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(23, 151, 88, 0.15); /* Subtle green glow */
     }
     .price-main {
-        font-size: 42px;
+        font-size: 48px;
         font-weight: 800;
         color: #179758;
         margin: 0;
-        line-height: 1.2;
+        line-height: 1.1;
     }
     .price-sub {
         font-size: 14px;
         text-transform: uppercase;
-        letter-spacing: 1px;
-        color: #888;
-        font-weight: 600;
+        letter-spacing: 1.2px;
+        color: #179758;
+        font-weight: 700;
+        opacity: 0.8;
     }
+    
+    /* Header graphic styling */
+    .header- icon { font-size: 60px; line-height: 0.8; }
     
     /* Disclaimer */
     .disclaimer {
@@ -66,20 +76,30 @@ st.markdown("""
         margin-top: 50px;
         text-align: center;
         border-top: 1px solid #ddd;
-        padding-top: 10px;
+        padding-top: 20px;
     }
     </style>
     """, unsafe_allow_html=True)
 
-st.title("NYC Fair Price Auditor")
-st.markdown("#### 🛡️ AI-Powered Price Protection")
+# ---------------------------------------------------------
+# 🚕 GRAPHICAL HEADER
+# ---------------------------------------------------------
+# Using columns to create a visual banner
+h_col1, h_col2 = st.columns([1, 5])
+with h_col1:
+    # A large, prominent taxi emoji acts as the logo
+    st.markdown('<div style="font-size: 70px; text-align: center;">🚕</div>', unsafe_allow_html=True)
+with h_col2:
+    st.title("NYC Fair Price Auditor")
+    st.markdown("#### 🛡️ AI-Powered Fare Protection Engine")
+
 st.markdown("Don't overpay. This agent analyses **2.7 million historical trips** to calculate a fair price range for your journey.")
 st.divider()
 
 # ---------------------------------------------------------
 # 🎛️ INPUTS
 # ---------------------------------------------------------
-st.subheader("1. Journey Details")
+st.subheader("📍 1. Journey Details")
 col1, col2 = st.columns(2)
 
 with col1:
@@ -109,24 +129,23 @@ def calculate_fare(dist, hr, weekend, pax):
     return max(5.0, total), c_base, c_dist, c_time, c_extra
 
 price, c_base, c_dist, c_time, c_extra = calculate_fare(distance, hour, is_weekend, passengers)
-
 low_range = price * 0.95 
 high_range = price * 1.15 
 
 # ---------------------------------------------------------
-# 🏁 AUDIT REPORT (The "Smart" Part)
+# 🏁 AUDIT REPORT
 # ---------------------------------------------------------
 st.divider()
-st.subheader("2. Audit Result")
+st.subheader("🤖 2. Audit Result")
 
-c1, c2 = st.columns([1.2, 1])
+c1, c2 = st.columns([1.3, 1])
 
 with c1:
     st.markdown(f"""
     <div class="price-card">
         <div class="price-sub">Fair Price Range</div>
         <div class="price-main">${low_range:.2f} - ${high_range:.2f}</div>
-        <div style="color: #666; font-size: 14px; margin-top: 5px;">
+        <div style="color: #666; font-size: 14px; margin-top: 8px; font-weight: 500;">
             Target Estimate: <b>${price:.2f}</b>
         </div>
     </div>
@@ -161,12 +180,11 @@ with c2:
 # 📊 TRANSPARENCY
 # ---------------------------------------------------------
 st.divider()
-st.subheader("3. Cost Transparency")
+st.subheader("📊 3. Cost Transparency")
 
 tab1, tab2 = st.tabs(["💵 Cost Breakdown", "📈 Market Trends"])
 
 with tab1:
-    # RENAMED "Time/Traffic Adj." to "Time Fee"
     breakdown_data = pd.DataFrame({
         "Component": ["Distance Rate", "Base Fare", "Time Fee", "Surcharges"],
         "Cost ($)": [c_dist, c_base, c_time, c_extra]
@@ -184,7 +202,15 @@ with tab1:
 with tab2:
     trend_df = pd.DataFrame({"Hour": range(24), "Avg Fare": HOURLY_PRICES})
     
-    line = alt.Chart(trend_df).mark_line(color='#179758', strokeWidth=3).encode(
+    line = alt.Chart(trend_df).mark_area(
+        line={'color':'#179758'},
+        color=alt.Gradient(
+            gradient='linear',
+            stops=[alt.GradientStop(color='#179758', offset=0),
+                   alt.GradientStop(color='transparent', offset=1)],
+            x1=1, x2=1, y1=1, y2=0
+        )
+    ).encode(
         x=alt.X('Hour', title="Hour of Day"),
         y=alt.Y('Avg Fare', title="Average Market Rate ($)")
     )
