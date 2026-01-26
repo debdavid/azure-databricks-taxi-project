@@ -21,14 +21,9 @@ st.set_page_config(page_title="NYC Pricing Agent", page_icon="🚖", layout="cen
 
 st.markdown("""
     <style>
-    /* --- 1. "CITY BLOCK" MAP BACKGROUND --- */
+    /* --- 1. CLEAN EXECUTIVE BACKGROUND (The "Green Shade" you liked) --- */
     .stApp {
-        background-color: #f0f2f6;
-        opacity: 1;
-        /* This CSS pattern mimics a large city grid (Streets & Avenues) */
-        background-image:  linear-gradient(#dbe1e8 2px, transparent 2px), linear-gradient(90deg, #dbe1e8 2px, transparent 2px), linear-gradient(#dbe1e8 1px, transparent 1px), linear-gradient(90deg, #dbe1e8 1px, transparent 1px);
-        background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
-        background-position: -2px -2px, -2px -2px, -1px -1px, -1px -1px;
+        background: linear-gradient(135deg, #f5f7fa 0%, #e4f0e8 100%);
     }
     
     /* --- 2. THE MEDALLION LOGO --- */
@@ -56,7 +51,7 @@ st.markdown("""
         background-color: #ffffff;
         border-radius: 12px;
         padding: 25px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.08); 
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05); /* Soft shadow */
         border: 1px solid #e1e4e8;
     }
     
@@ -93,7 +88,7 @@ st.markdown("""
         color: #95a5a6;
         margin-top: 50px;
         text-align: center;
-        background-color: rgba(255,255,255,0.8);
+        background-color: rgba(255,255,255,0.5);
         padding: 20px;
         border-radius: 8px;
         border: 1px solid #ddd;
