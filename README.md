@@ -5,6 +5,18 @@ Building an end-to-end Data Engineering pipeline to analyse NYC Taxi data. The g
 
 ---
 
+## 📂 Repository Structure
+The project is organised into a modular pipeline, with each notebook representing a stage in the Medallion Architecture.
+
+* **`/notebooks`** - PySpark notebooks for ingestion and transformation.
+     * '1_Setup_and_Ingest.py': Initial Azure setup and secure connection configuration (WASBS).
+     * '2_Ingest_Bronze.py': Ingestion logic to pull raw Parquet files from NYC TLC into the Bronze Layer.
+     * '3_Transform_Silver.py': Quality enforcement pipeline; filters invalid data and write to Delat Lake.
+     * '4_Analysis_Gold.py': Business aggregation logic for daily revenue reporting.
+* **'README.md'**: Project documentation, architecture diagrams, and execution evidence.
+
+---
+
 ## 🏗️ Tech Stack
 * **Cloud:** Microsoft Azure
 * **Compute:** Azure Databricks (Spark 3.5, Scala 2.12)
@@ -21,6 +33,18 @@ Building an end-to-end Data Engineering pipeline to analyse NYC Taxi data. The g
     * Configured Spark Cluster (Single Node) for cost optimisation.
     * Established secure connection between Databricks and Blob Storage via WASBS protocol.
 
+* **Phase 2: Ingestion / Brinze Layer** (Completed Jan 26)
+    * **Ingestion:** Programmatically downloaded NYC TLC Yellow Taxi data (Jan 2024).
+    * **Storage:** Successfully moved raw Parquet files into the Azure Data Lake ('raw' container).
+ 
+* **Phase 3: Transformation / Silver Layer** (Completed Jan 26)
+    * **Cleaning:** Implemented PySpark logic to filter invalid records (negative fares, zero passengers).
+    * **Schema:** Standardised column names for downsteam usability.
+    * **Delta Lake:** Materialised the clean data as a **Delta Table** to enforce ACID compliance.
+ 
+* **Phase 4: Business Aggregation / Gold Layer** (Completed Jan 26)
+    * **Analytics:** Calculated daily business KPIs (Total Revenue, Total Trips, Avg Trip Distance).
+    * **Reporting:** Saved aggregated "Gold" tables ready for Dashboard consumption
 ---
 
 ## 🏗️ ELT Pipeline Architecture
@@ -53,10 +77,3 @@ The pipeline follows the **Medallion Architecture** (Bronze → Silver → Gold)
 <img width="913" height="453" alt="Screenshot 2026-01-26 at 1 32 27 pm" src="https://github.com/user-attachments/assets/975bad72-0413-425c-8a81-85401625c621" />
 
 *Figure 2: Removed approximately ~200,000 invalid records (~7% of source data) to improve analytical accuracy.*
-
-
----
-
-## 📂 Repository Structure
-* `/notebooks` - PySpark notebooks for ingestion and transformation.
-  
