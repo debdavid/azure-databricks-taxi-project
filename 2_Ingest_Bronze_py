@@ -1,0 +1,40 @@
+import requests
+
+# --- CONFIGURATION (This was missing!) ---
+storage_account_name = "stresumeprojectdd"
+container_name = "nyctaxi"
+# ⚠️ PASTE YOUR KEY BELOW
+access_key = "PASTE_YOUR_ACCESS_KEY_HERE"
+
+# Official NYC Taxi Data URL (January 2024 Data)
+file_name = "yellow_tripdata_2024-01.parquet"
+download_url = f"https://d37ci6vzurychx.cloudfront.net/trip-data/{file_name}"
+
+# 1. Setup Access to Azure Storage
+spark.conf.set(
+    f"fs.azure.account.key.{storage_account_name}.blob.core.windows.net",
+    access_key
+)
+
+# 2. Download file to the Driver (The "Computer's" temporary hard drive)
+print(f"⬇️ Downloading {file_name} from NYC TLC website...")
+response = requests.get(download_url)
+with open(f"/tmp/{file_name}", "wb") as f:
+    f.write(response.content)
+print("✅ Download to Driver complete.")
+
+# 3. Move file from Driver to Azure Storage (The "Permanent Library")
+# We will create a folder called 'raw'
+dbfs_path = f"file:/tmp/{file_name}" # Local path
+azure_path = f"wasbs://{container_name}@{storage_account_name}.blob.core.windows.net/raw/{file_name}"
+
+print(f"🚀 Uploading to Azure Storage: {azure_path}...")
+try:
+    dbutils.fs.cp(dbfs_path, azure_path)
+    print("✅ Upload Success! The data is now in your Data Lake.")
+except Exception as e:
+    print("❌ Upload Failed:", e)
+
+# 4. Verify we can see it
+print("\n👀 Verifying Storage Content:")
+display(dbutils.fs.ls(f"wasbs://{container_name}@{storage_account_name}.blob.core.windows.net/raw/"))
