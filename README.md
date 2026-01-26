@@ -70,6 +70,7 @@ The pipeline follows the **Medallion Architecture** (Bronze → Silver → Gold)
 * **Data Quality Filters:**
     * Removed trips with **0 passengers** (Data Entry Errors).
     * Removed trips with **negative fares** (Refunds/Disputes).
+    * **[NEW] Temporal Validation:** Filtered out ~150 records with invalid timestamps (e.g., Year 2002) to ensure downstream reporting accuracy.
 * **Storage Format:** Saved as **Delta Tables** (Delta Lake) to enable **ACID transactions** and scalable metadata handling.
 
 **Data Quality Impact:**
@@ -77,3 +78,17 @@ The pipeline follows the **Medallion Architecture** (Bronze → Silver → Gold)
 <img width="913" height="453" alt="Screenshot 2026-01-26 at 1 32 27 pm" src="https://github.com/user-attachments/assets/975bad72-0413-425c-8a81-85401625c621" />
 
 *Figure 2: Removed approximately ~200,000 invalid records (~7% of source data) to improve analytical accuracy.*
+
+---
+
+### 🥇 Phase 4: Gold Layer (Business Aggregation)
+**Goal:** Create high-level business metrics optimised for dashboarding and reporting.
+
+**The "Time Travel" Fix:**
+*Initially, the pipeline detected records with timestamps from **2002**. I implemented a logic patch in the Silver Layer to enforce `year == 2024`, ensuring the final Gold report only contains valid current-year data.*
+
+**Final Output:**
+*Daily Revenue Analysis (Cleaned & Validated).*
+<img width="910" height="432" alt="Screenshot 2026-01-26 at 3 49 19 pm" src="https://github.com/user-attachments/assets/2d7cd9eb-68ff-4cc2-853f-66faa242b227" />
+
+*Figure 3: Validated Daily Revenue Report (Gold Layer)*
