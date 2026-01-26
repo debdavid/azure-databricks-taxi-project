@@ -1,0 +1,56 @@
+from pyspark.sql.functions import col, current_timestamp
+
+# --- CONFIGURATION ---
+storage_account_name = "stresumeprojectdd"
+container_name = "nyctaxi"
+# ⚠️ PASTE YOUR KEY BELOW
+access_key = "PASTE_ACCESS_KEY"
+
+# 1. Authenticate
+spark.conf.set(
+    f"fs.azure.account.key.{storage_account_name}.blob.core.windows.net",
+    access_key
+)
+
+# 2. READ: Load the Raw (Bronze) Data
+# We tell Spark to read the parquet file we downloaded earlier
+file_path = f"wasbs://{container_name}@{storage_account_name}.blob.core.windows.net/raw/yellow_tripdata_2024-01.parquet"
+print(f"📖 Reading raw data from: {file_path}")
+
+df_raw = spark.read.parquet(file_path)
+print(f"✅ Loaded {df_raw.count()} rows.")
+
+# 3. TRANSFORM: Clean and Rename
+# We are creating a new dataframe 'df_silver' with changes
+print("🧹 Cleaning data...")
+
+df_silver = (df_raw
+    # Rename columns to be cleaner (snake_case)
+    .withColumnRenamed("tpep_pickup_datetime", "pickup_time")
+    .withColumnRenamed("tpep_dropoff_datetime", "dropoff_time")
+    .withColumnRenamed("passenger_count", "passengers")
+    .withColumnRenamed("total_amount", "total_cost")
+    
+    # Filter out garbage data (Negative costs or 0 passengers)
+    .filter(col("total_cost") > 0)
+    .filter(col("passengers") > 0)
+    
+    # Add a timestamp so we know when we processed this
+    .withColumn("ingestion_date", current_timestamp())
+)
+
+print(f"✅ Cleaned data has {df_silver.count()} rows.")
+
+# 4. WRITE: Save as a Delta Table (Silver Layer)
+# We save this to a new folder called 'silver'
+save_path = f"wasbs://{container_name}@{storage_account_name}.blob.core.windows.net/silver/taxi_trips"
+
+print(f"💾 Saving to Delta Lake at: {save_path}...")
+
+(df_silver.write
+    .format("delta")           # The high-performance format
+    .mode("overwrite")         # If run again, replace the old table
+    .save(save_path)
+)
+
+print("✅ Success! Silver Layer created.")
