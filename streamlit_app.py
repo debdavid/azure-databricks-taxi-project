@@ -10,7 +10,7 @@ COEF_PASSENGER = 0.1288
 # 🎨 THE APP
 st.set_page_config(page_title="NYC Taxi AI Agent", page_icon="🚖", layout="centered")
 st.title("🚖 NYC Taxi Fare Predictor")
-st.markdown("""**Plan your trip budget instantly.** This AI Agent analyzes millions of historical NYC rides to estimate your fare in real-time.""")
+st.markdown("""**Plan your trip budget instantly.** This AI Agent analyses millions of historical NYC rides to estimate your fare in real-time.""")
 
 col1, col2 = st.columns(2)
 with col1:
