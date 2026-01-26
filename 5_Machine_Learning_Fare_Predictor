@@ -1,0 +1,71 @@
+from pyspark.sql.functions import col, hour, dayofweek
+from pyspark.ml.feature import VectorAssembler, StringIndexer
+from pyspark.ml.regression import LinearRegression
+from pyspark.ml.evaluation import RegressionEvaluator
+from pyspark.ml import Pipeline
+
+# --- CONFIGURATION ---
+storage_account_name = "stresumeprojectdd"
+container_name = "nyctaxi"
+# ⚠️ PASTE YOUR KEY BELOW
+access_key = "PASTE_YOUR_ACCESS_KEY_HERE"
+
+# 1. Authenticate & Read SILVER Data (Granular)
+spark.conf.set(
+    f"fs.azure.account.key.{storage_account_name}.blob.core.windows.net",
+    access_key
+)
+
+silver_path = f"wasbs://{container_name}@{storage_account_name}.blob.core.windows.net/silver/taxi_trips"
+print(f"🤖 Reading Silver Data for AI Training...")
+df = spark.read.format("delta").load(silver_path)
+
+# 2. FEATURE ENGINEERING
+# We need to turn "Time" into numbers the math can understand.
+# - Hour of Day (Is it rush hour?)
+# - Day of Week (Is it a weekend?)
+print("🔧 Engineering Features...")
+
+df_ml = (df
+    .withColumn("pickup_hour", hour(col("pickup_time")))
+    .withColumn("day_of_week", dayofweek(col("pickup_time")))
+    # Select only what we need for the model
+    .select("total_cost", "trip_distance", "pickup_hour", "day_of_week", "passengers")
+)
+
+# 3. VECTOR ASSEMBLY
+# ML models expect all features in a single "Vector" column
+assembler = VectorAssembler(
+    inputCols=["trip_distance", "pickup_hour", "day_of_week", "passengers"],
+    outputCol="features"
+)
+
+# 4. SPLIT DATA (Training vs Testing)
+# We hide 20% of the data to test if the model is actually "smart" or just memorizing.
+train_data, test_data = df_ml.randomSplit([0.8, 0.2], seed=42)
+print(f"📊 Training Set: {train_data.count()} rows | Test Set: {test_data.count()} rows")
+
+# 5. TRAIN MODEL
+# We use Linear Regression (predicting a continuous number: Price)
+print("🧠 Training Linear Regression Model (this might take a moment)...")
+lr = LinearRegression(labelCol="total_cost", featuresCol="features")
+
+# Define the pipeline (Assembler -> Model)
+pipeline = Pipeline(stages=[assembler, lr])
+model = pipeline.fit(train_data)
+
+print("✅ Model Trained!")
+
+# 6. EVALUATE
+# How wrong is our model on average? (RMSE = Root Mean Squared Error)
+print("📉 Evaluating Performance...")
+predictions = model.transform(test_data)
+evaluator = RegressionEvaluator(labelCol="total_cost", predictionCol="prediction", metricName="rmse")
+rmse = evaluator.evaluate(predictions)
+
+print(f"🎯 Root Mean Squared Error (RMSE): ${rmse:.2f}")
+print(f"   (On average, our model is off by about ${rmse:.2f})")
+
+# 7. SHOW PREDICTIONS
+print("\n🔮 Actual vs Predicted Prices:")
+display(predictions.select("total_cost", "prediction", "trip_distance", "pickup_hour").limit(10))
