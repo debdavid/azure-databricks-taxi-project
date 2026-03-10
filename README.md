@@ -1,4 +1,4 @@
-# 🚖 NYC Taxi Data Lakehouse (Azure + Databricks)
+# 🚖 NYC Taxi Fare Intelligence Lakehouse
 **End-to-End ELT Pipeline processing 3 million+ records using Medallion Architecture.**
 
 ## 🎯 Project Goal
